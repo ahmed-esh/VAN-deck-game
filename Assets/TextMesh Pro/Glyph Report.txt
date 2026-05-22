@@ -1,0 +1,21 @@
+Font: Inter  Style: Semi Bold
+Point Size: 90   Padding: 5   SP/PD Ratio: 5.6%
+
+Characters included: 90/99
+Missing characters: 9
+Excluded characters: 0
+
+Characters missing from font file:
+----------------------------------------
+ID: 33	Hex: 21	Char [!]
+ID: 44	Hex: 2C	Char [,]
+ID: 45	Hex: 2D	Char [-]
+ID: 46	Hex: 2E	Char [.]
+ID: 63	Hex: 3F	Char [?]
+ID: 95	Hex: 5F	Char [_]
+ID: 8203	Hex: 200B	Char [​]
+ID: 8230	Hex: 2026	Char […]
+ID: 9633	Hex: 25A1	Char [□]
+
+Characters excluded from packing:
+----------------------------------------
