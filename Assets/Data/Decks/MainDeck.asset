@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fab7c6aeb63a94df388c6868aca7fcb4, type: 3}
+  m_Name: MainDeck
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.DeckDefinition
+  deckName: Main Deck
+  startingHandCards:
+  - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
+  - {fileID: 11400000, guid: 77169866bf3c148aa8b6f554b974624b, type: 2}
+  drawPoolCards:
+  - {fileID: 11400000, guid: b5cf5389607fa4742908e54b16ac3bd8, type: 2}
+  - {fileID: 11400000, guid: 4c570c42ccb874d299185ff95d4c979d, type: 2}
+  - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
+  - {fileID: 11400000, guid: 77169866bf3c148aa8b6f554b974624b, type: 2}
+  recycleDiscardWhenEmpty: 0

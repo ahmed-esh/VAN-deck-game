@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94337d52cff4a4a5a8b3ccf3bd8f3c38, type: 3}
+  m_Name: Southridge
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.CityDefinition
+  cityId: southridge
+  displayName: Southridge
+  isStartCity: 0
+  isDestinationCity: 0
+  neighborCities:
+  - {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+  - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+  drivingDaysToNeighbor: 0300000005000000
+  parking: 1
+  costOfLiving: 0
+  funTheme: Camel riding
+  baseMoraleDelta: 5
+  stayDaysInCity: 1
+  possibleEvents:
+  - {fileID: 11400000, guid: 8b3c79ccc59c04b47a592174b5f75960, type: 2}
+  - {fileID: 11400000, guid: 9f7f0fbef75c347d98fa108ffb57a3d5, type: 2}
+  eventWeights:
+  - 2
+  - 1

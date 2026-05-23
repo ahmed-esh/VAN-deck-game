@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94337d52cff4a4a5a8b3ccf3bd8f3c38, type: 3}
+  m_Name: CityA
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.CityDefinition
+  cityId: city_a
+  displayName: City A
+  isStartCity: 1
+  isDestinationCity: 0
+  neighborCities:
+  - {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+  - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+  drivingDaysToNeighbor: 0200000003000000
+  parking: 0
+  costOfLiving: 0
+  funTheme: Grandpa's hometown
+  baseMoraleDelta: 0
+  stayDaysInCity: 0
+  possibleEvents: []
+  eventWeights: []

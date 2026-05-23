@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ad767415607146e0addaed08909b809, type: 3}
+  m_Name: AbilityCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.AbilityCatalog
+  firstCityRewards:
+  - {fileID: 11400000, guid: 96515c1e85fa94232b403951b60480f5, type: 2}
+  - {fileID: 11400000, guid: 1e32e34e3dd7249f288f753db8cd2257, type: 2}
+  - {fileID: 11400000, guid: a90806fd6c4544ef79b35aa6610d01d3, type: 2}
+  generalPool:
+  - {fileID: 11400000, guid: fb27e4fff885d42998fa90659be71512, type: 2}
+  - {fileID: 11400000, guid: 720fc70149a8e4a60a23b467b1880ce4, type: 2}
+  - {fileID: 11400000, guid: 8624ce51798704b8dbca4b915d2f95c6, type: 2}
+  - {fileID: 11400000, guid: 96515c1e85fa94232b403951b60480f5, type: 2}
+  - {fileID: 11400000, guid: 1e32e34e3dd7249f288f753db8cd2257, type: 2}
+  - {fileID: 11400000, guid: a90806fd6c4544ef79b35aa6610d01d3, type: 2}

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30abe75af18374fe59d837b1f1365728, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.GameConfig
+  startingMoney: 500
+  startingFuelPercent: 100
+  startingMoralePercent: 100
+  startingVanConditionPercent: 100
+  maxTripDays: 20
+  drivingDayRealTimeSeconds: 60
+  idleTimeMultiplier: 0.05
+  dailyFuelDrainPercent: 5
+  unfedMoralePenaltyPercent: 50
+  dietErUnfedMoralePenaltyPercent: 25
+  cardPlayOutDuration: 0.3
+  cardDrawInDuration: 0.35
+  cardDrawStartScale: 0.2
+  cardPlayEase: 26
+  cardDrawEase: 27
+  canvasTransitionDuration: 0.4
+  canvasTransitionEase: 9
+  mapOpenFadeDuration: 0.35
+  mapCloseFadeDuration: 0.3
+  citySelectShadeAlpha: 0.65
+  citySelectShadeDuration: 0.35
+  citySelectZoomScale: 1.35
+  citySelectZoomDuration: 0.5
+  citySelectHoldDuration: 0.4
+  citySelectEase: 10
+  minRandomEventsPerCity: 1
+  maxRandomEventsPerCity: 2
+  abilityChoicesOffered: 3
+  eventLogLineFadeDuration: 0.35
+  eventLogLineStagger: 0.12
+  abilityCardInDuration: 0.4
+  abilityCardInStartScale: 0.15
+  abilityCardInEase: 27
+  winLoseFadeDuration: 0.45
+  winLoseFadeEase: 9
