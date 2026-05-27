@@ -138,11 +138,14 @@ public class CardHandHoverFan : MonoBehaviour
     void OnDisable()
     {
         _pointerInside = false;
-
-        if (_isFanned)
-            Collapse();
-
         KillCardTweens();
+
+        if (!_isFanned)
+            return;
+
+        _isFanned = false;
+        // Cannot SetSiblingIndex while the hand parent is activating/deactivating.
+        ApplyLayout(_restAnchoredPositions, _restLocalEulerAngles, immediate: true);
     }
 
     /// <summary>Re-scan direct child card slots after the hand is rebuilt (M4 dynamic cards).</summary>
@@ -160,21 +163,34 @@ public class CardHandHoverFan : MonoBehaviour
     /// <summary>Collect direct child RectTransforms (skips this object's own RectTransform).</summary>
     void CollectCardsFromChildren()
     {
-        var childRects = GetComponentsInChildren<RectTransform>(includeInactive: false);
         var list = new System.Collections.Generic.List<RectTransform>();
+        Transform hand = transform;
 
-        for (int i = 0; i < childRects.Length; i++)
+        for (int i = 0; i < hand.childCount; i++)
         {
-            RectTransform rt = childRects[i];
-            if (rt.transform == transform)
+            Transform child = hand.GetChild(i);
+            if (child == null)
                 continue;
-            if (rt.parent != transform)
+
+            var rt = child as RectTransform;
+            if (rt == null || !rt.gameObject.activeInHierarchy)
                 continue;
+
             list.Add(rt);
         }
 
         list.Sort((a, b) => a.GetSiblingIndex().CompareTo(b.GetSiblingIndex()));
         cards = list.ToArray();
+    }
+
+    static bool IsValidHandCard(RectTransform card, Transform hand)
+    {
+        return card != null && hand != null && card.parent == hand;
+    }
+
+    static bool CanReorderChildSiblings(Transform hand)
+    {
+        return hand != null && hand.gameObject.activeInHierarchy;
     }
 
     void CacheLayoutTargets()
@@ -223,11 +239,12 @@ public class CardHandHoverFan : MonoBehaviour
         _isFanned = true;
         ApplyLayout(_fanAnchoredPositions, _fanLocalEulerAngles, immediate: false);
 
-        if (raiseSiblingOrderWhenFanned)
+        if (raiseSiblingOrderWhenFanned && CanReorderChildSiblings(transform))
         {
+            Transform hand = transform;
             for (int i = 0; i < cards.Length; i++)
             {
-                if (cards[i] != null)
+                if (IsValidHandCard(cards[i], hand))
                     cards[i].SetSiblingIndex(i);
             }
         }
@@ -241,11 +258,12 @@ public class CardHandHoverFan : MonoBehaviour
         _isFanned = false;
         ApplyLayout(_restAnchoredPositions, _restLocalEulerAngles, immediate: false);
 
-        if (raiseSiblingOrderWhenFanned)
+        if (raiseSiblingOrderWhenFanned && CanReorderChildSiblings(transform))
         {
+            Transform hand = transform;
             for (int i = 0; i < cards.Length; i++)
             {
-                if (cards[i] != null)
+                if (IsValidHandCard(cards[i], hand))
                     cards[i].SetSiblingIndex(_originalSiblingIndices[i]);
             }
         }
@@ -253,13 +271,18 @@ public class CardHandHoverFan : MonoBehaviour
 
     void ApplyLayout(Vector2[] positions, Vector3[] rotations, bool immediate)
     {
-        for (int i = 0; i < cards.Length; i++)
+        if (cards == null || positions == null || rotations == null)
+            return;
+
+        Transform hand = transform;
+        int count = Mathf.Min(cards.Length, positions.Length, rotations.Length);
+        for (int i = 0; i < count; i++)
         {
             RectTransform card = cards[i];
-            if (card == null)
+            if (!IsValidHandCard(card, hand))
                 continue;
 
-            card.DOKill();
+            card.DOKill(true);
 
             if (immediate)
             {
@@ -268,8 +291,12 @@ public class CardHandHoverFan : MonoBehaviour
                 continue;
             }
 
-            card.DOAnchorPos(positions[i], tweenDuration).SetEase(tweenEase);
-            card.DOLocalRotate(rotations[i], tweenDuration, RotateMode.Fast).SetEase(tweenEase);
+            card.DOAnchorPos(positions[i], tweenDuration)
+                .SetEase(tweenEase)
+                .SetLink(card.gameObject, LinkBehaviour.KillOnDestroy);
+            card.DOLocalRotate(rotations[i], tweenDuration, RotateMode.Fast)
+                .SetEase(tweenEase)
+                .SetLink(card.gameObject, LinkBehaviour.KillOnDestroy);
         }
     }
 

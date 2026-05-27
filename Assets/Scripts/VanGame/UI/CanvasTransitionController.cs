@@ -99,6 +99,7 @@ namespace VanGame.UI
       if (mapShadeOverlay != null)
         sequence.Join(mapShadeOverlay.DOFade(0f, gameConfig.mapCloseFadeDuration));
 
+      sequence.OnKill(() => _isTransitioning = false);
       sequence.OnComplete(() =>
       {
         ResetMapTransform(immediate: true);
@@ -111,12 +112,10 @@ namespace VanGame.UI
         if (cardCanvas != null)
         {
           cardCanvas.gameObject.SetActive(true);
-          CanvasGroup cardGroup = cardCanvas.GetComponent<CanvasGroup>();
-          if (cardGroup != null)
-          {
-            cardGroup.alpha = 0f;
-            cardGroup.DOFade(1f, gameConfig.canvasTransitionDuration).SetEase(gameConfig.canvasTransitionEase);
-          }
+          SetCardCanvasInteractable(true);
+          CanvasGroup cardGroup = GetOrAddCanvasGroup(cardCanvas);
+          cardGroup.alpha = 0f;
+          cardGroup.DOFade(1f, gameConfig.canvasTransitionDuration).SetEase(gameConfig.canvasTransitionEase);
         }
 
         _isTransitioning = false;
@@ -163,6 +162,7 @@ namespace VanGame.UI
         Sequence openSeq = DOTween.Sequence();
         openSeq.Append(mapCanvasGroup.DOFade(1f, gameConfig.mapOpenFadeDuration).SetEase(gameConfig.canvasTransitionEase));
         openSeq.Join(cardGroup.DOFade(0f, gameConfig.mapOpenFadeDuration).SetEase(gameConfig.canvasTransitionEase));
+        openSeq.OnKill(() => _isTransitioning = false);
         openSeq.OnComplete(() =>
         {
           cardGroup.interactable = false;
@@ -178,6 +178,7 @@ namespace VanGame.UI
         Sequence closeSeq = DOTween.Sequence();
         closeSeq.Append(mapCanvasGroup.DOFade(0f, gameConfig.mapCloseFadeDuration).SetEase(gameConfig.canvasTransitionEase));
         closeSeq.Join(cardGroup.DOFade(1f, gameConfig.mapCloseFadeDuration).SetEase(gameConfig.canvasTransitionEase));
+        closeSeq.OnKill(() => _isTransitioning = false);
         closeSeq.OnComplete(() =>
         {
           mapCanvas.gameObject.SetActive(false);
@@ -225,8 +226,20 @@ namespace VanGame.UI
       }
     }
 
+    public void SetCardCanvasInteractable(bool interactable)
+    {
+      if (cardCanvas == null)
+        return;
+
+      CanvasGroup cardGroup = GetOrAddCanvasGroup(cardCanvas);
+      cardGroup.interactable = interactable;
+      cardGroup.blocksRaycasts = interactable;
+    }
+
     void OnDisable()
     {
+      _isTransitioning = false;
+
       if (mapRoot != null)
         mapRoot.DOKill();
 

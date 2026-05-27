@@ -29,6 +29,15 @@ namespace VanGame.Data
         SmallSatisfaction
     }
 
+    /// <summary>How many slices of the 8-part driving-day bar this card advances when played.</summary>
+    public enum CardDayTimeCost
+    {
+        OneSection = 1,
+        TwoSections = 2,
+        ThreeSections = 3,
+        FourSections = 4
+    }
+
     public enum GamePhase
     {
         CardIdle,
@@ -55,6 +64,8 @@ namespace VanGame.Data
     public enum ModifierOperation
     {
         Add,
-        Multiply
+        Subtract,
+        Multiply,
+        Divide
     }
 }

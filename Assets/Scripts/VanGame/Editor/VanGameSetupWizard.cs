@@ -107,8 +107,11 @@ namespace VanGame.Editor
       snack.category = CardCategory.Food;
       snack.moneyCostMin = 10;
       snack.moneyCostMax = 10;
-      snack.moraleDeltaPercent = 5f;
-      snack.realTimeSeconds = 10f;
+      snack.effects = new[]
+      {
+        new CardEffect { target = CardEffectTarget.Morale, operation = CardStatOperation.Add, value = 5f }
+      };
+      snack.dayTimeCost = CardDayTimeCost.OneSection;
       snack.countsAsFedToday = true;
       snack.includeInStartingHand = true;
 
@@ -118,9 +121,12 @@ namespace VanGame.Editor
       fuel.category = CardCategory.Fuel;
       fuel.moneyCostMin = 40;
       fuel.moneyCostMax = 40;
-      fuel.fuelDeltaPercent = 25f;
-      fuel.vanConditionDelta = -10f;
-      fuel.realTimeSeconds = 0f;
+      fuel.effects = new[]
+      {
+        new CardEffect { target = CardEffectTarget.Fuel, operation = CardStatOperation.Add, value = 25f },
+        new CardEffect { target = CardEffectTarget.VanCondition, operation = CardStatOperation.Subtract, value = 10f }
+      };
+      fuel.dayTimeCost = CardDayTimeCost.TwoSections;
       fuel.includeInStartingHand = true;
 
       ActionCardDefinition foodTruck = LoadOrCreate<ActionCardDefinition>(CardsPath + "/Food_FoodTruck.asset");
@@ -129,8 +135,11 @@ namespace VanGame.Editor
       foodTruck.category = CardCategory.Food;
       foodTruck.moneyCostMin = 20;
       foodTruck.moneyCostMax = 20;
-      foodTruck.moraleDeltaPercent = 10f;
-      foodTruck.realTimeSeconds = 15f;
+      foodTruck.effects = new[]
+      {
+        new CardEffect { target = CardEffectTarget.Morale, operation = CardStatOperation.Add, value = 10f }
+      };
+      foodTruck.dayTimeCost = CardDayTimeCost.TwoSections;
       foodTruck.countsAsFedToday = true;
 
       ActionCardDefinition cookVan = LoadOrCreate<ActionCardDefinition>(CardsPath + "/Food_CookVan.asset");
@@ -140,8 +149,11 @@ namespace VanGame.Editor
       cookVan.moneyCostMin = 5;
       cookVan.moneyCostMax = 10;
       cookVan.rollCostOnPlay = true;
-      cookVan.moraleDeltaPercent = 5f;
-      cookVan.realTimeSeconds = 30f;
+      cookVan.effects = new[]
+      {
+        new CardEffect { target = CardEffectTarget.Morale, operation = CardStatOperation.Add, value = 5f }
+      };
+      cookVan.dayTimeCost = CardDayTimeCost.FourSections;
       cookVan.countsAsFedToday = true;
 
       DeckDefinition deck = LoadOrCreate<DeckDefinition>(DecksPath + "/MainDeck.asset");
@@ -259,12 +271,12 @@ namespace VanGame.Editor
       WinLoseView loseView = BuildWinLosePanel(cardCanvas.transform, "LosePanel", false);
 
       CanvasGroup mapGroup = GetOrAdd<CanvasGroup>(mapCanvas.gameObject);
-      RectTransform mapRoot = CreateMapStructure(mapCanvas.transform, out CanvasGroup shade, out MapStatsTooltipView tooltip, out MapRegionView[] regions);
+      RectTransform mapRoot = CreateMapStructure(mapCanvas.transform, out CanvasGroup shade, out MapStatsTooltipView tooltip, out MapVanMarkerView vanMarker, out MapRegionView[] regions);
       Button closeMapBtn = CreateButton(mapCanvas.transform, "Button_CloseMap", "Close Map", new Vector2(320f, -260f));
 
       AssignFlowReferences(flow, resolver, deck, endOfDay, drivingTurn, cityArrival, randomEvents, transitions, map,
         hud, cardHand, timerView, eventLog, abilityPick, winView, loseView,
-        openMapBtn, closeMapBtn, drivingPanel, cityArrivalPanel, cardCanvas, mapCanvas, mapGroup, mapRoot, shade, tooltip, regions);
+        openMapBtn, closeMapBtn, drivingPanel, cityArrivalPanel, cardCanvas, mapCanvas, mapGroup, mapRoot, shade, tooltip, vanMarker, regions);
       AssignCityDefinitionsToRegions(regions);
 
       mapCanvas.gameObject.SetActive(false);
@@ -339,6 +351,7 @@ namespace VanGame.Editor
       RectTransform mapRoot,
       CanvasGroup shade,
       MapStatsTooltipView tooltip,
+      MapVanMarkerView vanMarker,
       MapRegionView[] regions)
     {
       GameConfig config = AssetDatabase.LoadAssetAtPath<GameConfig>(ConfigPath);
@@ -412,10 +425,11 @@ namespace VanGame.Editor
         mapSo.FindProperty("mapRegions").GetArrayElementAtIndex(i).objectReferenceValue = regions[i];
       mapSo.FindProperty("tooltip").objectReferenceValue = tooltip;
       mapSo.FindProperty("closeMapButton").objectReferenceValue = closeMap.gameObject;
+      mapSo.FindProperty("vanMarker").objectReferenceValue = vanMarker;
       mapSo.ApplyModifiedProperties();
     }
 
-    static RectTransform CreateMapStructure(Transform mapCanvas, out CanvasGroup shade, out MapStatsTooltipView tooltip, out MapRegionView[] regions)
+    static RectTransform CreateMapStructure(Transform mapCanvas, out CanvasGroup shade, out MapStatsTooltipView tooltip, out MapVanMarkerView vanMarker, out MapRegionView[] regions)
     {
       GameObject shadeGo = CreateUiObject("MapShadeOverlay", mapCanvas);
       RectTransform shadeRect = shadeGo.GetComponent<RectTransform>();
@@ -463,6 +477,8 @@ namespace VanGame.Editor
         regions[i] = regionGo.AddComponent<MapRegionView>();
       }
 
+      vanMarker = CreateMapVanMarker(regionsGo.transform);
+
       GameObject tooltipGo = CreateUiObject("MapStatsTooltip", mapCanvas);
       RectTransform tooltipRect = tooltipGo.GetComponent<RectTransform>();
       tooltipRect.anchorMin = new Vector2(0f, 1f);
@@ -484,11 +500,36 @@ namespace VanGame.Editor
       tooltipSo.FindProperty("moraleText").objectReferenceValue = CreateTmpChild(tooltipGo.transform, "Morale", new Vector2(12f, -140f));
       tooltipSo.FindProperty("stayDaysText").objectReferenceValue = CreateTmpChild(tooltipGo.transform, "StayDays", new Vector2(12f, -172f));
       tooltipSo.FindProperty("drivingDaysText").objectReferenceValue = CreateTmpChild(tooltipGo.transform, "DrivingDays", new Vector2(160f, -172f));
-      tooltipSo.FindProperty("statusText").objectReferenceValue = CreateTmpChild(tooltipGo.transform, "Status", new Vector2(160f, -12f));
       tooltipSo.ApplyModifiedProperties();
 
       tooltipGo.SetActive(false);
       return mapRoot;
+    }
+
+    static MapVanMarkerView CreateMapVanMarker(Transform parent)
+    {
+      GameObject go = CreateUiObject("MapVanMarker", parent);
+      RectTransform rt = go.GetComponent<RectTransform>();
+      rt.anchorMin = new Vector2(0.5f, 0.5f);
+      rt.anchorMax = new Vector2(0.5f, 0.5f);
+      rt.pivot = new Vector2(0.5f, 0.5f);
+      rt.sizeDelta = new Vector2(64f, 64f);
+      rt.anchoredPosition = Vector2.zero;
+      rt.SetAsLastSibling();
+
+      Image image = go.AddComponent<Image>();
+      image.raycastTarget = false;
+      image.preserveAspect = true;
+      Sprite vanSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Visuals/vadfwdwadawn.png");
+      if (vanSprite != null)
+        image.sprite = vanSprite;
+
+      MapVanMarkerView marker = go.AddComponent<MapVanMarkerView>();
+      SerializedObject markerSo = new SerializedObject(marker);
+      markerSo.FindProperty("rectTransform").objectReferenceValue = rt;
+      markerSo.FindProperty("vanImage").objectReferenceValue = image;
+      markerSo.ApplyModifiedProperties();
+      return marker;
     }
 
     static DrivingDayTimerView BuildDrivingTimer(Transform parent)
@@ -541,7 +582,7 @@ namespace VanGame.Editor
       SerializedObject handSo = new SerializedObject(hand);
       handSo.FindProperty("handContainer").objectReferenceValue = rt;
       handSo.FindProperty("hoverFan").objectReferenceValue = fan;
-      handSo.FindProperty("cardPrefab").objectReferenceValue = cardPrefab;
+      handSo.FindProperty("fallbackCardPrefab").objectReferenceValue = cardPrefab;
       handSo.ApplyModifiedProperties();
 
       return hand;
@@ -564,13 +605,20 @@ namespace VanGame.Editor
       bg.color = new Color(0.95f, 0.92f, 0.85f, 1f);
       go.AddComponent<CanvasGroup>();
 
+      GameObject descriptionGo = CreateUiObject("Description", go.transform);
+      RectTransform descriptionRt = descriptionGo.GetComponent<RectTransform>();
+      descriptionRt.sizeDelta = new Vector2(100f, 120f);
+      descriptionRt.anchoredPosition = new Vector2(0f, 8f);
+      TMP_Text descriptionTmp = CreateTmpChild(descriptionGo.transform, "DescriptionText", Vector2.zero);
+      descriptionTmp.fontSize = 14f;
+      descriptionTmp.alignment = TextAlignmentOptions.Center;
+      descriptionGo.SetActive(false);
+
       CardView view = go.AddComponent<CardView>();
       SerializedObject so = new SerializedObject(view);
       so.FindProperty("backgroundImage").objectReferenceValue = bg;
-      so.FindProperty("titleText").objectReferenceValue = CreateTmpChild(go.transform, "Title", new Vector2(0f, 52f));
-      so.FindProperty("categoryText").objectReferenceValue = CreateTmpChild(go.transform, "Category", new Vector2(0f, 28f));
-      so.FindProperty("costText").objectReferenceValue = CreateTmpChild(go.transform, "Cost", new Vector2(0f, 4f));
-      so.FindProperty("statsText").objectReferenceValue = CreateTmpChild(go.transform, "Stats", new Vector2(0f, -28f));
+      so.FindProperty("descriptionRoot").objectReferenceValue = descriptionGo;
+      so.FindProperty("descriptionText").objectReferenceValue = descriptionTmp;
       so.ApplyModifiedProperties();
 
       PrefabUtility.SaveAsPrefabAsset(go, CardPrefabPath);

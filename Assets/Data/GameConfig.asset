@@ -17,14 +17,19 @@ MonoBehaviour:
   startingMoralePercent: 100
   startingVanConditionPercent: 100
   maxTripDays: 20
-  drivingDayRealTimeSeconds: 60
-  idleTimeMultiplier: 0.05
+  drivingDaySectionCount: 8
+  drivingDayIdleFillMinutes: 30
   dailyFuelDrainPercent: 5
   unfedMoralePenaltyPercent: 50
   dietErUnfedMoralePenaltyPercent: 25
+  cardPlayMoveToCenterDuration: 0.4
+  cardPlayCenterHoldDuration: 0.12
+  cardPlayVanishDuration: 0.45
+  cardPlayCenterScale: 1.35
+  cardPlaySpinDegrees: 360
   cardPlayOutDuration: 0.3
   cardDrawInDuration: 0.35
-  cardDrawStartScale: 0.2
+  cardDrawStartScale: 1
   cardPlayEase: 26
   cardDrawEase: 27
   canvasTransitionDuration: 0.4

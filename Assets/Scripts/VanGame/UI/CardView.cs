@@ -7,54 +7,58 @@ using VanGame.Data;
 
 namespace VanGame.UI
 {
-  public class CardView : MonoBehaviour, IPointerClickHandler
+  public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
   {
-    [SerializeField] TMP_Text titleText;
-    [SerializeField] TMP_Text categoryText;
-    [SerializeField] TMP_Text costText;
-    [SerializeField] TMP_Text statsText;
+    [SerializeField] GameObject descriptionRoot;
+    [SerializeField] TMP_Text descriptionText;
     [SerializeField] Image backgroundImage;
     [SerializeField] Color affordableColor = Color.white;
     [SerializeField] Color unaffordableColor = new Color(0.75f, 0.45f, 0.45f, 1f);
 
     ActionCardDefinition _definition;
     bool _interactable = true;
+    bool _isPlaying;
 
     public ActionCardDefinition Definition => _definition;
     public RectTransform RectTransform => transform as RectTransform;
+    public bool IsPlaying => _isPlaying;
 
     public event Action<CardView> Clicked;
+
+    void Awake()
+    {
+      SetDescriptionVisible(false);
+    }
 
     public void Setup(ActionCardDefinition definition, bool canAfford)
     {
       _definition = definition;
+      _isPlaying = false;
+      SetDescriptionVisible(false);
 
       if (definition == null)
         return;
 
-      if (titleText != null)
-        titleText.text = definition.title;
-
-      if (categoryText != null)
-        categoryText.text = definition.category.ToString();
-
-      if (costText != null)
-      {
-        if (definition.moneyCostMin == definition.moneyCostMax)
-          costText.text = $"${definition.moneyCostMin}";
-        else
-          costText.text = $"${definition.moneyCostMin}-${definition.moneyCostMax}";
-      }
-
-      if (statsText != null)
-        statsText.text = BuildStatsLine(definition);
+      if (descriptionText != null)
+        descriptionText.text = string.IsNullOrWhiteSpace(definition.description)
+          ? definition.title
+          : definition.description;
 
       SetAffordable(canAfford);
     }
 
     public void SetInteractable(bool interactable)
     {
-      _interactable = interactable;
+      _interactable = interactable && !_isPlaying;
+    }
+
+    public void SetPlaying(bool playing)
+    {
+      _isPlaying = playing;
+      _interactable = !playing;
+
+      if (playing)
+        SetDescriptionVisible(false);
     }
 
     public void SetAffordable(bool canAfford)
@@ -63,31 +67,37 @@ namespace VanGame.UI
         backgroundImage.color = canAfford ? affordableColor : unaffordableColor;
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+      if (!_interactable || _isPlaying || _definition == null)
+        return;
+
+      SetDescriptionVisible(true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+      SetDescriptionVisible(false);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
-      if (!_interactable || _definition == null)
+      if (!_interactable || _isPlaying || _definition == null)
         return;
 
       Clicked?.Invoke(this);
     }
 
-    static string BuildStatsLine(ActionCardDefinition card)
+    void SetDescriptionVisible(bool visible)
     {
-      string line = string.Empty;
+      if (descriptionRoot != null)
+      {
+        descriptionRoot.SetActive(visible);
+        return;
+      }
 
-      if (Mathf.Abs(card.moraleDeltaPercent) > 0.01f)
-        line += $"M {card.moraleDeltaPercent:+0;-0}%  ";
-
-      if (Mathf.Abs(card.fuelDeltaPercent) > 0.01f)
-        line += $"F {card.fuelDeltaPercent:+0;-0}%  ";
-
-      if (Mathf.Abs(card.vanConditionDelta) > 0.01f)
-        line += $"V {card.vanConditionDelta:+0;-0}  ";
-
-      if (card.realTimeSeconds > 0f)
-        line += $"{card.realTimeSeconds:0}s";
-
-      return string.IsNullOrWhiteSpace(line) ? "Instant" : line.Trim();
+      if (descriptionText != null)
+        descriptionText.gameObject.SetActive(visible);
     }
   }
 }

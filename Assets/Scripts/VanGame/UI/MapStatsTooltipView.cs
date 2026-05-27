@@ -14,22 +14,18 @@ namespace VanGame.UI
     [SerializeField] TMP_Text moraleText;
     [SerializeField] TMP_Text stayDaysText;
     [SerializeField] TMP_Text drivingDaysText;
-    [SerializeField] TMP_Text statusText;
 
     [Header("Labels")]
     [SerializeField] string moralePositiveFormat = "+{0} Morale";
     [SerializeField] string moraleNegativeFormat = "{0} Morale";
     [SerializeField] string drivingDaysFormat = "{0} days to drive";
-    [SerializeField] string unreachableText = "Not reachable";
-    [SerializeField] string visitedText = "Already visited";
-    [SerializeField] string destinationText = "Destination";
 
     void Awake()
     {
       Hide(immediate: true);
     }
 
-    public void Show(CityDefinition city, int drivingDays, bool isReachable, bool isVisited, bool isDestination)
+    public void Show(CityDefinition city, int drivingDays)
     {
       if (city == null)
       {
@@ -61,18 +57,6 @@ namespace VanGame.UI
 
       if (drivingDaysText != null)
         drivingDaysText.text = string.Format(drivingDaysFormat, drivingDays);
-
-      if (statusText != null)
-      {
-        if (isVisited)
-          statusText.text = visitedText;
-        else if (isDestination)
-          statusText.text = destinationText;
-        else if (!isReachable)
-          statusText.text = unreachableText;
-        else
-          statusText.text = string.Empty;
-      }
 
       if (canvasGroup != null)
       {

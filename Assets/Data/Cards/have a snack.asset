@@ -10,20 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1122d5b6279e24b78bca71e26e138bb3, type: 3}
-  m_Name: Food_FoodTruck
+  m_Name: have a snack
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.ActionCardDefinition
-  cardId: food_truck
-  title: Food truck
-  description: 
+  cardId: have_snacj
+  title: Have a snack
+  description: Have a snack
   category: 0
   tier: 0
-  moneyCostMin: 20
-  moneyCostMax: 20
-  rollCostOnPlay: 0
-  moraleDeltaPercent: 10
+  moneyCostMin: 10
+  moneyCostMax: 10
+  rollCostOnPlay: 1
+  dayTimeCost: 1
+  effects:
+  - target: 1
+    operation: 0
+    value: 5
+  - target: 4
+    operation: 0
+    value: 10
+  countsAsFedToday: 1
+  moraleDeltaPercent: 5
   fuelDeltaPercent: 0
   vanConditionDelta: 0
-  realTimeSeconds: 15
-  countsAsFedToday: 1
-  includeInStartingHand: 0
-  duplicateCount: 1
+  realTimeSeconds: 10
+  restrictToSpecificRegions: 0
+  allowedRegions: []
+  includeInStartingHand: 1
+  duplicateCount: 53

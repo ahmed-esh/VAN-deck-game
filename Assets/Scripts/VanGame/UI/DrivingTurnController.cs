@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using VanGame;
 using VanGame.Core;
@@ -17,10 +16,9 @@ namespace VanGame.UI
     [SerializeField] DrivingDayTimerView timerView;
 
     bool _isLegActive;
-    bool _cardActionLocked;
     bool _isEndingDay;
 
-    public bool CanPlayCards => _isLegActive && !_cardActionLocked && gameFlow != null
+    public bool CanPlayCards => _isLegActive && gameFlow != null
       && gameFlow.RunState.Phase == GamePhase.Driving;
 
     void Awake()
@@ -44,6 +42,9 @@ namespace VanGame.UI
         cardHand?.Initialize(deckController, statResolver, this, gameConfig);
       }
 
+      if (timerView != null && gameFlow != null)
+        timerView.Bind(gameFlow.RunState, gameConfig);
+
       RefreshTimerUi();
     }
 
@@ -62,20 +63,20 @@ namespace VanGame.UI
       if (!CanAdvanceTimer())
         return;
 
-      float drift = Time.deltaTime * gameConfig.idleTimeMultiplier;
-      AdvanceDrivingTimer(drift);
+      float idleSections = gameConfig.IdleSectionsPerSecond * Time.deltaTime;
+      AdvanceDrivingDaySections(idleSections);
     }
 
     bool CanAdvanceTimer()
     {
-      return _isLegActive && !_cardActionLocked && gameConfig != null && gameFlow != null
+      return _isLegActive && gameConfig != null && gameFlow != null
         && gameFlow.RunState.Phase == GamePhase.Driving;
     }
 
     void OnPhaseChanged()
     {
       bool driving = gameFlow.RunState.Phase == GamePhase.Driving;
-      cardHand?.SetHandInteractable(driving && !_cardActionLocked);
+      cardHand?.SetHandInteractable(driving);
       RefreshTimerUi();
     }
 
@@ -87,12 +88,12 @@ namespace VanGame.UI
     public void OnLegStarted()
     {
       _isLegActive = true;
-      _cardActionLocked = false;
 
       RunState run = gameFlow.RunState;
       run.DrivingDayTimer = 0f;
       run.FedToday = false;
 
+      deckController?.SetCurrentRegion(run.CurrentCity);
       cardHand?.RebuildHand();
       cardHand?.SetHandInteractable(true);
       RefreshTimerUi();
@@ -101,7 +102,7 @@ namespace VanGame.UI
     public void OnLegEnded()
     {
       _isLegActive = false;
-      _cardActionLocked = false;
+      cardHand?.ClearHandVisuals();
       cardHand?.SetHandInteractable(false);
     }
 
@@ -112,76 +113,63 @@ namespace VanGame.UI
 
       ActionCardDefinition card = view.Definition;
 
+      if (!deckController.IsCardLegalInCurrentRegion(card))
+        return;
+
       if (!statResolver.CanAfford(deckController.GetCardMoneyCost(card)))
         return;
 
-      StartCoroutine(PlayCardRoutine(view, card));
+      PlayCard(view, card);
     }
 
-    IEnumerator PlayCardRoutine(CardView view, ActionCardDefinition card)
+    void PlayCard(CardView view, ActionCardDefinition card)
     {
-      _cardActionLocked = true;
-      cardHand?.SetHandInteractable(false);
+      cardHand?.AnimateCardPlay(view, null);
 
       statResolver.ApplyCardEffects(card);
 
-      float actionDuration = statResolver.GetResolvedActionDuration(card.realTimeSeconds);
-      AdvanceDrivingTimer(actionDuration);
+      int sections = statResolver.GetCardDayTimeSections(card);
+      AdvanceDrivingDaySections(sections);
 
-      bool played = deckController.TryPlayCard(card, out _);
+      if (!deckController.TryPlayCard(card, out _))
+        return;
 
-      if (played)
-      {
-        bool removed = false;
-        cardHand?.AnimateCardOut(view, () => removed = true);
-
-        while (!removed)
-          yield return null;
-
-        cardHand?.RebuildHand();
-      }
-
-      if (actionDuration > 0f)
-        yield return new WaitForSeconds(actionDuration);
-      else
-        yield return null;
-
-      _cardActionLocked = false;
+      cardHand?.RefreshAffordability();
 
       if (CheckLoseAfterAction())
-        yield break;
+        return;
 
       if (ShouldEndDrivingDay())
         EndDrivingDay();
-
-      if (_isLegActive)
-        cardHand?.SetHandInteractable(true);
 
       RefreshTimerUi();
     }
 
-    void AdvanceDrivingTimer(float delta)
+    void AdvanceDrivingDaySections(float sectionDelta)
     {
-      if (gameConfig == null || gameFlow == null)
+      if (gameConfig == null || gameFlow == null || sectionDelta <= 0f)
         return;
 
       RunState run = gameFlow.RunState;
-      run.DrivingDayTimer += delta;
-      timerView?.RefreshTimer(run.DrivingDayTimer, GetDrivingDayBudget());
+      float maxSections = GetDrivingDaySectionCount();
+      run.DrivingDayTimer = Mathf.Min(run.DrivingDayTimer + sectionDelta, maxSections);
+      RefreshTimerUi();
 
       if (ShouldEndDrivingDay())
         EndDrivingDay();
     }
 
-    float GetDrivingDayBudget()
+    int GetDrivingDaySectionCount()
     {
       if (gameConfig == null)
-        return 60f;
+        return 8;
 
       if (statResolver == null)
-        return gameConfig.drivingDayRealTimeSeconds;
+        return Mathf.Max(1, gameConfig.drivingDaySectionCount);
 
-      return statResolver.ApplyModifier(ModifierTarget.DrivingDayBudget, gameConfig.drivingDayRealTimeSeconds);
+      return Mathf.Max(
+        1,
+        Mathf.RoundToInt(statResolver.ApplyModifier(ModifierTarget.DrivingDayBudget, gameConfig.drivingDaySectionCount)));
     }
 
     bool ShouldEndDrivingDay()
@@ -189,7 +177,7 @@ namespace VanGame.UI
       if (gameConfig == null || gameFlow == null)
         return false;
 
-      return gameFlow.RunState.DrivingDayTimer >= GetDrivingDayBudget();
+      return gameFlow.RunState.DrivingDayTimer >= GetDrivingDaySectionCount();
     }
 
     void EndDrivingDay()
@@ -238,10 +226,11 @@ namespace VanGame.UI
 
     void RefreshTimerUi()
     {
-      timerView?.Refresh();
+      if (timerView == null || gameFlow == null)
+        return;
 
-      if (gameConfig != null && gameFlow != null)
-        timerView?.RefreshTimer(gameFlow.RunState.DrivingDayTimer, GetDrivingDayBudget());
+      timerView.Refresh();
+      timerView.RefreshTimer(gameFlow.RunState.DrivingDayTimer, GetDrivingDaySectionCount());
     }
   }
 }

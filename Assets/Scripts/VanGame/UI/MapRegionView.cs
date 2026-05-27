@@ -29,6 +29,7 @@ namespace VanGame.UI
 
     public CityDefinition City => city;
     public RectTransform LiftTarget => liftTarget != null ? liftTarget : (RectTransform)transform;
+    public Vector2 MapAnchorPosition => LiftTarget.anchoredPosition;
 
     void Awake()
     {

@@ -9,6 +9,7 @@ namespace VanGame.UI
   {
     [SerializeField] MapRegionView[] mapRegions = System.Array.Empty<MapRegionView>();
     [SerializeField] MapStatsTooltipView tooltip;
+    [SerializeField] MapVanMarkerView vanMarker;
     [SerializeField] GameObject closeMapButton;
 
     RunState _runState;
@@ -18,7 +19,14 @@ namespace VanGame.UI
     public void Initialize(GameFlowController flow, RunState runState)
     {
       _flow = flow;
+
+      if (_runState != null)
+        _runState.PhaseChanged -= OnRunStateChanged;
+
       _runState = runState;
+
+      if (_runState != null)
+        _runState.PhaseChanged += OnRunStateChanged;
 
       foreach (MapRegionView region in mapRegions)
       {
@@ -27,6 +35,17 @@ namespace VanGame.UI
       }
 
       RefreshRegionStates();
+    }
+
+    void OnDestroy()
+    {
+      if (_runState != null)
+        _runState.PhaseChanged -= OnRunStateChanged;
+    }
+
+    void OnRunStateChanged()
+    {
+      RefreshVanMarker();
     }
 
     public void OnMapOpened(bool forceDestinationPick)
@@ -59,6 +78,50 @@ namespace VanGame.UI
 
         region.SetInteractableState(isReachable, isVisited, isDestination);
       }
+
+      RefreshVanMarker();
+    }
+
+    public void RefreshVanMarker()
+    {
+      if (vanMarker == null || _runState?.CurrentCity == null)
+      {
+        vanMarker?.SetVisible(false);
+        return;
+      }
+
+      MapRegionView currentRegion = FindRegionForCity(_runState.CurrentCity);
+      if (currentRegion == null)
+      {
+        vanMarker.SetVisible(false);
+        return;
+      }
+
+      Vector2 position = currentRegion.MapAnchorPosition;
+
+      if (_runState.DestinationCity != null)
+      {
+        MapRegionView destinationRegion = FindRegionForCity(_runState.DestinationCity);
+        if (destinationRegion != null)
+          position = (position + destinationRegion.MapAnchorPosition) * 0.5f;
+      }
+
+      vanMarker.SetAnchoredPosition(position);
+      vanMarker.SetVisible(true);
+    }
+
+    MapRegionView FindRegionForCity(CityDefinition city)
+    {
+      if (city == null)
+        return null;
+
+      foreach (MapRegionView region in mapRegions)
+      {
+        if (region != null && region.City == city)
+          return region;
+      }
+
+      return null;
     }
 
     HashSet<CityDefinition> BuildReachableSet()
@@ -91,11 +154,8 @@ namespace VanGame.UI
 
       CityDefinition city = region.City;
       int drivingDays = _runState.CurrentCity.GetDrivingDaysTo(city);
-      bool reachable = BuildReachableSet().Contains(city);
-      bool visited = _runState.IsCityVisited(city) && city != _runState.CurrentCity;
-      bool isDestination = _runState.DestinationCityAsset != null && city == _runState.DestinationCityAsset;
 
-      tooltip.Show(city, drivingDays, reachable, visited, isDestination);
+      tooltip.Show(city, drivingDays);
     }
 
     public void NotifyRegionUnhovered(MapRegionView region)

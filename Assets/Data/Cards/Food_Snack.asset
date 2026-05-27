@@ -20,10 +20,20 @@ MonoBehaviour:
   moneyCostMin: 10
   moneyCostMax: 10
   rollCostOnPlay: 0
+  effects:
+  - target: 1
+    operation: 0
+    value: 5
+  - target: 4
+    operation: 0
+    value: 10
+  countsAsFedToday: 1
+  dayTimeCost: 2
   moraleDeltaPercent: 5
   fuelDeltaPercent: 0
   vanConditionDelta: 0
   realTimeSeconds: 10
-  countsAsFedToday: 1
+  restrictToSpecificRegions: 0
+  allowedRegions: []
   includeInStartingHand: 1
   duplicateCount: 1
