@@ -15,18 +15,27 @@ namespace VanGame.UI
 
     [SerializeField] string destinationFormat = "Driving to {0}";
     [SerializeField] string legDaysFormat = "Leg: {0} day(s) left";
-    [SerializeField] string timerFormat = "{0:0}s / {1:0}s";
+    [SerializeField] string timerFormat = "{0:0}/{1}";
 
     RunState _runState;
     GameConfig _config;
 
     public void Bind(RunState runState, GameConfig config)
     {
+      if (_runState != null)
+      {
+        _runState.StatsChanged -= Refresh;
+        _runState.PhaseChanged -= Refresh;
+      }
+
       _runState = runState;
       _config = config;
 
       if (_runState != null)
+      {
         _runState.StatsChanged += Refresh;
+        _runState.PhaseChanged += Refresh;
+      }
 
       Refresh();
     }
@@ -34,16 +43,22 @@ namespace VanGame.UI
     void OnDestroy()
     {
       if (_runState != null)
+      {
         _runState.StatsChanged -= Refresh;
+        _runState.PhaseChanged -= Refresh;
+      }
     }
 
-    public void RefreshTimer(float currentSeconds, float budgetSeconds)
+    public void RefreshTimer(float filledSections, int sectionCount)
     {
-      if (dayTimerText != null && _config != null)
-        dayTimerText.text = string.Format(timerFormat, currentSeconds, budgetSeconds);
+      int maxSections = Mathf.Max(1, sectionCount);
+      float clamped = Mathf.Clamp(filledSections, 0f, maxSections);
 
-      if (dayTimerFill != null && budgetSeconds > 0f)
-        dayTimerFill.fillAmount = Mathf.Clamp01(currentSeconds / budgetSeconds);
+      if (dayTimerText != null)
+        dayTimerText.text = string.Format(timerFormat, clamped, maxSections);
+
+      if (dayTimerFill != null)
+        dayTimerFill.fillAmount = clamped / maxSections;
     }
 
     public void Refresh()
@@ -62,8 +77,16 @@ namespace VanGame.UI
       if (legDaysText != null)
         legDaysText.text = string.Format(legDaysFormat, _runState.DrivingDaysRemaining);
 
-      if (_config != null)
-        RefreshTimer(_runState.DrivingDayTimer, _config.drivingDayRealTimeSeconds);
+      int sectionCount = GetSectionCount();
+      RefreshTimer(_runState.DrivingDayTimer, sectionCount);
+    }
+
+    int GetSectionCount()
+    {
+      if (_config == null)
+        return 8;
+
+      return Mathf.Max(1, _config.drivingDaySectionCount);
     }
   }
 }

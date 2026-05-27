@@ -13,12 +13,18 @@ MonoBehaviour:
   m_Name: MainDeck
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.DeckDefinition
   deckName: Main Deck
+  startingHandPrefabs:
+  - {fileID: 8811223344556677889, guid: a6993daf6ff9d4e95989abc09a581990, type: 3}
+  - {fileID: 8811223344556677889, guid: b8c9d0e1f2a34b5c6d7e8f9012345678, type: 3}
+  drawPoolPrefabs:
+  - {fileID: 8811223344556677889, guid: a6993daf6ff9d4e95989abc09a581990, type: 3}
+  - {fileID: 8811223344556677889, guid: b8c9d0e1f2a34b5c6d7e8f9012345678, type: 3}
   startingHandCards:
   - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
-  - {fileID: 11400000, guid: 77169866bf3c148aa8b6f554b974624b, type: 2}
+  - {fileID: 11400000, guid: 7b31144dd512249fcbbac2cbf5cf2f04, type: 2}
   drawPoolCards:
-  - {fileID: 11400000, guid: b5cf5389607fa4742908e54b16ac3bd8, type: 2}
-  - {fileID: 11400000, guid: 4c570c42ccb874d299185ff95d4c979d, type: 2}
+  - {fileID: 11400000, guid: 7b31144dd512249fcbbac2cbf5cf2f04, type: 2}
   - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
-  - {fileID: 11400000, guid: 77169866bf3c148aa8b6f554b974624b, type: 2}
-  recycleDiscardWhenEmpty: 0
+  recycleDiscardWhenEmpty: 1
+  shuffleDrawPoolOnInit: 1
+  shuffleDiscardOnRecycle: 1

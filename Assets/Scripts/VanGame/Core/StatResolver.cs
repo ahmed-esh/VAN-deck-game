@@ -121,12 +121,138 @@ namespace VanGame.Core
 
       int moneyCost = GetResolvedMoneyCost(card);
       ApplyMoneyDelta(-moneyCost);
-      ApplyMoraleDelta(card.moraleDeltaPercent);
-      ApplyFuelDelta(card.fuelDeltaPercent);
-      ApplyVanDelta(card.vanConditionDelta);
+
+      if (card.HasAuthoredEffects)
+        ApplyCardEffectList(card.effects);
+      else
+        ApplyLegacyCardEffects(card);
 
       if (card.countsAsFedToday)
         _runState.FedToday = true;
+    }
+
+    public float GetCardActionDuration(ActionCardDefinition card)
+    {
+      if (card == null)
+        return 0f;
+
+      if (card.HasAuthoredEffects)
+        return ResolveActionDurationFromEffects(card.effects);
+
+      return card.realTimeSeconds;
+    }
+
+    public int GetCardDayTimeSections(ActionCardDefinition card)
+    {
+      if (card == null)
+        return 1;
+
+      return Mathf.Clamp(card.GetDayTimeSections(), 1, 4);
+    }
+
+    void ApplyLegacyCardEffects(ActionCardDefinition card)
+    {
+      ApplyMoraleDelta(card.moraleDeltaPercent);
+      ApplyFuelDelta(card.fuelDeltaPercent);
+      ApplyVanDelta(card.vanConditionDelta);
+    }
+
+    void ApplyCardEffectList(CardEffect[] effects)
+    {
+      if (effects == null)
+        return;
+
+      foreach (CardEffect effect in effects)
+        ApplyCardEffect(effect);
+    }
+
+    void ApplyCardEffect(CardEffect effect)
+    {
+      if (_runState == null)
+        return;
+
+      switch (effect.target)
+      {
+        case CardEffectTarget.Money:
+          ApplyMoneyDelta(Mathf.RoundToInt(ResolveCardEffectValue(_runState.Money, effect)));
+          break;
+        case CardEffectTarget.Morale:
+          ApplyMoralePercentEffect(effect);
+          break;
+        case CardEffectTarget.Fuel:
+          ApplyFuelPercentEffect(effect);
+          break;
+        case CardEffectTarget.VanCondition:
+          ApplyVanEffect(effect);
+          break;
+        case CardEffectTarget.ActionDuration:
+          break;
+      }
+    }
+
+    void ApplyMoralePercentEffect(CardEffect effect)
+    {
+      if (effect.operation == CardStatOperation.Add || effect.operation == CardStatOperation.Subtract)
+      {
+        float delta = effect.operation == CardStatOperation.Add ? effect.value : -effect.value;
+        ApplyMoraleDelta(delta);
+        return;
+      }
+
+      float next = CardEffectMath.Apply(_runState.MoralePercent, effect.operation, effect.value);
+      _runState.MoralePercent = Mathf.Clamp(next, 0f, 100f);
+      _runState.NotifyStatsChanged();
+    }
+
+    void ApplyFuelPercentEffect(CardEffect effect)
+    {
+      if (effect.operation == CardStatOperation.Add || effect.operation == CardStatOperation.Subtract)
+      {
+        float delta = effect.operation == CardStatOperation.Add ? effect.value : -effect.value;
+        ApplyFuelDelta(delta);
+        return;
+      }
+
+      float next = CardEffectMath.Apply(_runState.FuelPercent, effect.operation, effect.value);
+      _runState.FuelPercent = Mathf.Clamp(next, 0f, 100f);
+      _runState.NotifyStatsChanged();
+    }
+
+    void ApplyVanEffect(CardEffect effect)
+    {
+      if (effect.operation == CardStatOperation.Add || effect.operation == CardStatOperation.Subtract)
+      {
+        float delta = effect.operation == CardStatOperation.Add ? effect.value : -effect.value;
+        ApplyVanDelta(delta);
+        return;
+      }
+
+      float next = CardEffectMath.Apply(_runState.VanConditionPercent, effect.operation, effect.value);
+      _runState.VanConditionPercent = Mathf.Clamp(next, 0f, 100f);
+      _runState.NotifyStatsChanged();
+    }
+
+    static float ResolveCardEffectValue(float currentStat, CardEffect effect)
+    {
+      if (effect.operation == CardStatOperation.Add || effect.operation == CardStatOperation.Subtract)
+        return effect.operation == CardStatOperation.Add ? effect.value : -effect.value;
+
+      return CardEffectMath.Apply(currentStat, effect.operation, effect.value) - currentStat;
+    }
+
+    float ResolveActionDurationFromEffects(CardEffect[] effects)
+    {
+      float duration = 0f;
+
+      foreach (CardEffect effect in effects)
+      {
+        if (effect.target != CardEffectTarget.ActionDuration)
+          continue;
+
+        duration = CardEffectMath.Apply(duration, effect.operation, effect.value);
+      }
+
+      return duration;
     }
 
     public float ApplyModifier(ModifierTarget target, float baseValue)
@@ -146,13 +272,28 @@ namespace VanGame.Core
           if (mod.target != target)
             continue;
 
-          result = mod.operation == ModifierOperation.Add
-            ? result + mod.value
-            : result * mod.value;
+          result = ApplyModifierOperation(result, mod.operation, mod.value);
         }
       }
 
       return result;
+    }
+
+    static float ApplyModifierOperation(float baseValue, ModifierOperation operation, float value)
+    {
+      switch (operation)
+      {
+        case ModifierOperation.Add:
+          return baseValue + value;
+        case ModifierOperation.Subtract:
+          return baseValue - value;
+        case ModifierOperation.Multiply:
+          return baseValue * value;
+        case ModifierOperation.Divide:
+          return Mathf.Approximately(value, 0f) ? baseValue : baseValue / value;
+        default:
+          return baseValue;
+      }
     }
 
     public string GetLoseReason()

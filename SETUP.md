@@ -185,19 +185,26 @@ Both canvases need **CanvasGroup** (card canvas fades when map opens).
 
 **Map Stats Tooltip View** on `MapStatsTooltip` panel. Wire TMP fields:
 
-- City Name, Parking, Cost, Fun, Morale, Stay Days, Driving Days, Status
+- City Name, Parking, Cost, Fun, Morale, Stay Days, Driving Days
 
 Tooltip shows driving days **from current city** to hovered city.
 
-### Step 9 — Map Controller
+### Step 9 — Map van marker
+
+Under **MapRegions**, add a child **MapVanMarker** (Image + **Map Van Marker View**). Assign your van sprite on the Image (default wizard sprite: `Assets/Visuals/vadfwdwadawn.png`). The marker is placed on the current city; while driving between two cities it sits halfway between them.
+
+Menu: **Van Game → Add Map Van Marker To Scene** wires an existing scene automatically.
+
+### Step 10 — Map Controller
 
 | Field | Assign |
 |-------|--------|
 | Map Regions | All MapRegionView components |
 | Tooltip | MapStatsTooltip |
+| Van Marker | MapVanMarker object |
 | Close Map Button | Button_CloseMap GameObject |
 
-### Step 10 — Stats HUD
+### Step 11 — Stats HUD
 
 **Stats Hud View** — wire TMP texts for Money, Fuel, Morale, Van, Day.
 
@@ -233,25 +240,66 @@ Wire on **Driving Turn Controller**: Game Flow, Game Config, Stat Resolver, Deck
 | Component | Role |
 |-----------|------|
 | CardHandHoverFan | Fan on hover (existing prototype script) |
-| CardHandController | Spawns `CardView` prefab per hand card |
+| CardHandController | Spawns per-card prefabs from the deck |
 | BoxCollider2D | Auto-sized to hand rect |
 
 | Field | Assign |
 |-------|--------|
 | Hand Container | CardHandArea RectTransform |
 | Hover Fan | CardHandHoverFan on same object |
-| Card Prefab | `Assets/Prefabs/VanGame/CardView.prefab` |
+| Fallback Card Prefab | Generic `CardView` prefab if a deck entry has no prefab |
+| Play Animation Root | Optional: full-screen RectTransform (center of card canvas). Leave empty to use the card canvas root. |
 
-### Action cards (ScriptableObject)
+### Adding cards (prefab + ScriptableObject)
 
-Key fields for driving:
+Each card is **two assets**: gameplay data (SO) + visual prefab.
 
-| Field | Effect |
-|-------|--------|
-| Money Cost Min/Max | Spend money (max used for afford check) |
-| Morale/Fuel/Van deltas | Applied on play |
-| Real Time Seconds | Advances driving day timer |
-| Counts As Fed Today | Avoids end-of-day hunger penalty |
+1. **Create card data** — Right-click → **Create → Van Game → Action Card**. Set title, costs, and **Effects** (see below).
+2. **Duplicate or create a card prefab** under `Assets/Prefabs/VanGame/` (copy `CardView.prefab` as a template).
+3. On the prefab root, add **Action Card Prefab** and assign:
+   - **Definition** → your Action Card asset
+   - **Card View** → the `CardView` on the same object (auto-filled)
+4. Style the prefab: `Image` / **Sprite Renderer** for art, TMP labels, etc. (visual-only; stats come from the SO).
+5. **Add to deck** — Open `MainDeck.asset`:
+   - **Starting Hand Prefabs** / **Draw Pool Prefabs** → drag your card prefabs (with `ActionCardPrefab`), not the bare SO.
+   - Legacy **Starting Hand Cards** / **Draw Pool Cards** still work if prefab lists are empty (uses Fallback Card Prefab for visuals).
+
+Menu: **Van Game → Cards → Migrate Legacy Effects On Selected Cards** converts old Morale/Fuel/Van/Time fields into the Effects array.
+
+### Action card effects (ScriptableObject)
+
+| Operation | Meaning (Morale / Fuel / Van) | Meaning (Action Duration) |
+|-----------|------------------------------|---------------------------|
+| **Add** | Increase by value | Add seconds to play time |
+| **Subtract** | Decrease by value | Subtract seconds |
+| **Multiply** | Multiply current stat by value | Multiply duration chain |
+| **Divide** | Divide current stat by value | Divide duration chain |
+
+| Target | Notes |
+|--------|--------|
+| Money | Extra money change on top of the card’s **Money Cost** |
+| Morale / Fuel / Van Condition | Stat change |
+| Action Duration | How long the card advances the driving timer |
+
+Also: **Counts As Fed Today** — avoids end-of-day hunger penalty.
+
+**Region availability** — enable **Restrict To Specific Regions** and assign **Allowed Regions** (city assets). If off, the card can appear anywhere.
+
+**Card face** — only **Description** shows, and only while the pointer hovers that card (wire **Description Root** + **Description Text** on `CardView`).
+
+### How the deck works (draw / display)
+
+1. **MainDeck** lists starting hand + draw pool (prefabs or card assets).
+2. On run start, `DeckController` loads those lists. The draw pile is **shuffled** if **Shuffle Draw Pool On Init** is on (default).
+3. **CardHandController** spawns one UI instance per card in the current hand (matching prefab per card).
+4. **CardHandHoverFan** fans cards when the pointer enters the hand area (not per-card).
+5. When you **play** a card: it leaves the hand → **discard** → the next card is drawn from the **top of the draw pile** (skipping cards illegal in the current city).
+6. When the draw pile is empty, discard can be recycled (optional shuffle). There is no separate “hand size limit” beyond what the deck lists give you.
+7. Cards restricted to other regions are returned to the draw pile when you enter a city where they are not allowed.
+
+### Play animation
+
+When a card is clicked it moves to the **center of the play animation root**, holds briefly, then spins/scales away. Tune on **GameConfig**: Card Play Move To Center Duration, Center Hold, Vanish Duration, Center Scale, Spin Degrees.
 
 ### GameConfig driving fields
 
@@ -261,7 +309,8 @@ Key fields for driving:
 | Idle Time Multiplier | 0.05 | Slow drift when not playing cards |
 | Daily Fuel Drain Percent | 5 | End of each driving day |
 | Unfed Morale Penalty Percent | 50 | If no food card played that day |
-| Card Play/Draw durations | DOTween | Card exit + new card entrance |
+| Card play move / hold / vanish | DOTween | Center-screen play animation |
+| Card draw durations | DOTween | New card entrance |
 
 ---
 
@@ -269,6 +318,7 @@ Key fields for driving:
 
 | Content | How |
 |---------|-----|
+| New card | Action Card SO + card prefab with Action Card Prefab → add prefab to MainDeck lists |
 | New city | Create City Definition asset, wire neighbors on adjacent cities, add Map Region Image |
 | New card | Create Action Card asset, add to Deck starting hand or draw pool |
 | Tune transitions | Edit GameConfig asset |

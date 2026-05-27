@@ -12,6 +12,7 @@ namespace VanGame.Core
     public float VanConditionPercent { get; set; }
     public int TripDayCurrent { get; set; }
     public int DrivingDaysRemaining { get; set; }
+    /// <summary>Sections filled on the current driving-day bar (0 … drivingDaySectionCount).</summary>
     public float DrivingDayTimer { get; set; }
 
     public CityDefinition CurrentCity { get; set; }

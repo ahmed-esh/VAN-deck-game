@@ -47,6 +47,17 @@ namespace VanGame
       StartNewRun();
     }
 
+    void Update()
+    {
+      if (!Input.GetKeyDown(KeyCode.M))
+        return;
+
+      if (IsMapVisible())
+        OnCloseMapClicked();
+      else
+        OnOpenMapClicked();
+    }
+
     void WireButtons()
     {
       if (openMapButton != null)
@@ -82,6 +93,7 @@ namespace VanGame
       drivingTurn?.OnLegEnded();
       statsHud?.Refresh();
       mapController?.RefreshRegionStates();
+      deckController?.SetCurrentRegion(_runState.CurrentCity);
 
       SetPanel(drivingPanel, true);
       SetPanel(cityArrivalPanel, false);
@@ -127,6 +139,12 @@ namespace VanGame
       canvasTransition?.CloseMap();
     }
 
+    bool IsMapVisible()
+    {
+      return _runState.Phase == GamePhase.MapOpen
+        || _runState.Phase == GamePhase.MapSelectingDestination;
+    }
+
     bool CanOpenMap()
     {
       if (_runState.Phase == GamePhase.Win || _runState.Phase == GamePhase.Lose)
@@ -162,9 +180,11 @@ namespace VanGame
       _runState.SetPhase(GamePhase.Driving);
       SetPanel(drivingPanel, true);
       SetPanel(cityArrivalPanel, false);
+      canvasTransition?.SetCardCanvasInteractable(true);
 
       _runState.EventLog.Add($"Driving to {_runState.DestinationCity.displayName} ({_runState.DrivingDaysRemaining} days).");
       _runState.NotifyStatsChanged();
+      mapController?.RefreshVanMarker();
       drivingTurn?.OnLegStarted();
     }
 
@@ -179,6 +199,8 @@ namespace VanGame
       _runState.CurrentCity = arrivedCity;
       _runState.MarkCityVisited(arrivedCity);
       _runState.DestinationCity = null;
+      mapController?.RefreshRegionStates();
+      deckController?.SetCurrentRegion(arrivedCity);
 
       SetPanel(cityArrivalPanel, true);
       SetOpenMapButtonVisible(false);

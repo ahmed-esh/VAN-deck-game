@@ -15,14 +15,26 @@ namespace VanGame.Data
         [Header("Trip limits")]
         public int maxTripDays = 20;
 
-        [Header("Driving time")]
-        public float drivingDayRealTimeSeconds = 60f;
-        public float idleTimeMultiplier = 0.05f;
+        [Header("Driving day (8-section bar)")]
+        [Tooltip("Sections on the day timer bar. A full bar ends the driving day.")]
+        public int drivingDaySectionCount = 8;
+
+        [Tooltip("Real minutes for the bar to fill from idle drift only (no cards played).")]
+        public float drivingDayIdleFillMinutes = 30f;
+
+        public float IdleSectionsPerSecond =>
+            drivingDaySectionCount / Mathf.Max(1f, drivingDayIdleFillMinutes * 60f);
         public float dailyFuelDrainPercent = 5f;
         public float unfedMoralePenaltyPercent = 50f;
         public float dietErUnfedMoralePenaltyPercent = 25f;
 
         [Header("Card play (DOTween)")]
+        public float cardPlayMoveToCenterDuration = 0.4f;
+        public float cardPlayCenterHoldDuration = 0.12f;
+        public float cardPlayVanishDuration = 0.45f;
+        public float cardPlayCenterScale = 1.35f;
+        public float cardPlaySpinDegrees = 360f;
+        [Tooltip("Legacy alias; unused if Card Play Vanish Duration is set.")]
         public float cardPlayOutDuration = 0.3f;
         public float cardDrawInDuration = 0.35f;
         public float cardDrawStartScale = 0.2f;
