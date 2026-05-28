@@ -10,25 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94337d52cff4a4a5a8b3ccf3bd8f3c38, type: 3}
-  m_Name: Argylle
+  m_Name: Carolinton
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.CityDefinition
-  cityId: argylle
-  displayName: Argylle
+  cityId: carolinton
+  displayName: Carolinton
   isStartCity: 0
   isDestinationCity: 0
   neighborCities:
   - {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
-  - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
-  - {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
-  drivingDaysToNeighbor: 040000000500000003000000
+  - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+  drivingDaysToNeighbor: 0300000005000000
   parking: 2
-  costOfLiving: 2
-  funTheme: Water park
-  baseMoraleDelta: 50
-  stayDaysInCity: 3
-  possibleEvents:
-  - {fileID: 11400000, guid: 83163c5231731421fa0e1fda8dadbeb3, type: 2}
-  - {fileID: 11400000, guid: 9f7f0fbef75c347d98fa108ffb57a3d5, type: 2}
-  eventWeights:
-  - 3
-  - 1
+  costOfLiving: 1
+  funTheme: Skiing
+  baseMoraleDelta: 25
+  stayDaysInCity: 2
+  possibleEvents: []
+  eventWeights: []
