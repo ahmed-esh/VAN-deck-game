@@ -20,12 +20,23 @@ namespace VanGame.UI
     [SerializeField] Color visitedTint = new Color(0.55f, 0.55f, 0.55f, 0.65f);
     [SerializeField] Color unreachableTint = new Color(1f, 1f, 1f, 0.25f);
 
+    [Header("Current location")]
+    [SerializeField] Color currentTint = Color.white;
+    [SerializeField] Color currentBlinkTint = new Color(1f, 0.95f, 0.55f, 1f);
+    [SerializeField] float currentBlinkDuration = 0.55f;
+
+    [Header("Final destination")]
+    [SerializeField] Color destinationTint = new Color(1f, 0.72f, 0.72f, 1f);
+    [SerializeField] Color destinationBlinkTint = new Color(1f, 0.35f, 0.35f, 1f);
+    [SerializeField] float destinationBlinkDuration = 0.65f;
+
     Image _image;
     MapController _mapController;
     Vector2 _restAnchoredPosition;
     bool _isLifted;
     bool _isReachable;
     bool _isVisited;
+    Tweener _regionBlinkTween;
 
     public CityDefinition City => city;
     public RectTransform LiftTarget => liftTarget != null ? liftTarget : (RectTransform)transform;
@@ -48,16 +59,55 @@ namespace VanGame.UI
       _mapController = controller;
     }
 
-    public void SetInteractableState(bool reachable, bool visited, bool isDestination)
+    public void SetInteractableState(bool reachable, bool visited, bool isDestination, bool isCurrent)
     {
-      _isReachable = reachable && !visited;
+      _isReachable = reachable && !visited && !isCurrent;
       _isVisited = visited;
 
-      if (_image != null)
+      StopRegionBlink();
+
+      if (_image == null)
+        return;
+
+      _image.raycastTarget = _isReachable;
+
+      if (isCurrent)
       {
-        _image.raycastTarget = _isReachable;
-        _image.color = visited ? visitedTint : reachable ? reachableTint : unreachableTint;
+        StartRegionBlink(currentTint, currentBlinkTint, currentBlinkDuration);
+        return;
       }
+
+      if (isDestination)
+      {
+        StartRegionBlink(destinationTint, destinationBlinkTint, destinationBlinkDuration);
+        return;
+      }
+
+      _image.color = visited ? visitedTint : reachable ? reachableTint : unreachableTint;
+    }
+
+    void StartRegionBlink(Color baseTint, Color blinkTint, float duration)
+    {
+      if (_image == null)
+        return;
+
+      _image.color = baseTint;
+      _regionBlinkTween = _image
+        .DOColor(blinkTint, duration)
+        .SetEase(Ease.InOutSine)
+        .SetLoops(-1, LoopType.Yoyo);
+    }
+
+    void StopRegionBlink()
+    {
+      if (_regionBlinkTween != null)
+      {
+        _regionBlinkTween.Kill();
+        _regionBlinkTween = null;
+      }
+
+      if (_image != null)
+        _image.DOKill();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -112,6 +162,7 @@ namespace VanGame.UI
 
     void OnDisable()
     {
+      StopRegionBlink();
       LiftTarget.DOKill();
       _isLifted = false;
       LiftTarget.anchoredPosition = _restAnchoredPosition;

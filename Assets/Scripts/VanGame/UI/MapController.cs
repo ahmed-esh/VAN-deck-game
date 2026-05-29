@@ -76,7 +76,7 @@ namespace VanGame.UI
         bool isReachable = reachable.Contains(city);
         bool isDestination = _runState.DestinationCityAsset != null && city == _runState.DestinationCityAsset;
 
-        region.SetInteractableState(isReachable, isVisited, isDestination);
+        region.SetInteractableState(isReachable, isVisited, isDestination, isCurrent);
       }
 
       RefreshVanMarker();

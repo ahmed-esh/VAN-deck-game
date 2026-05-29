@@ -19,7 +19,7 @@ MonoBehaviour:
   maxTripDays: 20
   drivingDaySectionCount: 8
   drivingDayIdleFillMinutes: 30
-  dailyFuelDrainPercent: 5
+  dailyFuelDrainPercent: 15
   unfedMoralePenaltyPercent: 50
   dietErUnfedMoralePenaltyPercent: 25
   cardPlayMoveToCenterDuration: 0.4

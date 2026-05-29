@@ -20,7 +20,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
   - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
   - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
-  drivingDaysToNeighbor: 0200000003000000
+  drivingDaysToNeighbor: 020000000300000003000000
   parking: 0
   costOfLiving: 0
   funTheme: Grandpa's hometown

@@ -17,10 +17,9 @@ MonoBehaviour:
   isStartCity: 0
   isDestinationCity: 0
   neighborCities:
-  - {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
-  - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
-  - {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
-  drivingDaysToNeighbor: 020000000400000006000000
+  - {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
+  - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+  drivingDaysToNeighbor: 0300000001000000
   parking: 0
   costOfLiving: 0
   funTheme: Oil Rigs

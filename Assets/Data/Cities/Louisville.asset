@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94337d52cff4a4a5a8b3ccf3bd8f3c38, type: 3}
   m_Name: Louisville
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.CityDefinition
-  cityId: carolinton
-  displayName: Carolinton
+  cityId: 'louisville  '
+  displayName: 'Louisville  '
   isStartCity: 0
   isDestinationCity: 0
   neighborCities:
-  - {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
-  - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
-  drivingDaysToNeighbor: 0300000005000000
-  parking: 2
-  costOfLiving: 1
-  funTheme: Skiing
-  baseMoraleDelta: 25
+  - {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+  - {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
+  - {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+  drivingDaysToNeighbor: 020000000200000003000000
+  parking: 0
+  costOfLiving: 0
+  funTheme: Minning
+  baseMoraleDelta: -50
   stayDaysInCity: 2
   possibleEvents: []
   eventWeights: []
