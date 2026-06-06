@@ -16,12 +16,24 @@ namespace VanGame.UI
     readonly List<CardView> _cardViews = new List<CardView>();
 
     bool _handRebuildSuspended;
+    CardView _inspectedCard;
+    InspectState _inspectState;
     DeckController _deck;
     StatResolver _statResolver;
     DrivingTurnController _drivingTurn;
     GameConfig _config;
 
+    struct InspectState
+    {
+      public Transform parent;
+      public int siblingIndex;
+      public Vector2 anchoredPosition;
+      public Vector3 localEulerAngles;
+      public Vector3 localScale;
+    }
+
     public IReadOnlyList<CardView> CardViews => _cardViews;
+    public bool IsInspectingCard => _inspectedCard != null;
 
     public void Initialize(
       DeckController deck,
@@ -44,6 +56,23 @@ namespace VanGame.UI
         _deck.HandChanged -= OnDeckHandChanged;
     }
 
+    void Update()
+    {
+      if (_inspectedCard != null)
+      {
+        if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.Escape))
+          CloseInspect();
+        return;
+      }
+
+      if (!Input.GetKeyDown(KeyCode.X) || hoverFan == null || _drivingTurn == null || !_drivingTurn.CanPlayCards)
+        return;
+
+      CardView focused = hoverFan.GetFocusedCardView();
+      if (focused != null && focused.IsInteractable && hoverFan.CanFocusCards)
+        OpenInspect(focused);
+    }
+
     public void SetHandRebuildSuspended(bool suspended)
     {
       _handRebuildSuspended = suspended;
@@ -57,42 +86,271 @@ namespace VanGame.UI
         return;
       }
 
-      RebuildHand();
+      RefreshHandViews(dealerDealAll: false);
+    }
+
+    int _pendingDrawSlot = -1;
+
+    public void AddDrawnCardToSlot(int slot)
+    {
+      ActionCardDefinition card = FindNewCardInDeckHand();
+      if (card == null || handContainer == null || slot < 0)
+      {
+        hoverFan?.SetAwaitingDrawnCard(false);
+        return;
+      }
+
+      CardView view = SpawnAndSetupCardView(card);
+      if (view == null)
+      {
+        hoverFan?.SetAwaitingDrawnCard(false);
+        return;
+      }
+
+      view.HandSlot = slot;
+      view.transform.SetSiblingIndex(slot);
+      _cardViews.Add(view);
+      AnimateDrawFromLeft(view);
+      RefreshAffordability();
+    }
+
+    void AssignRoundSlots()
+    {
+      int maxSlots = _deck != null ? _deck.HandSize : 8;
+      for (int i = 0; i < _cardViews.Count; i++)
+      {
+        CardView view = _cardViews[i];
+        if (view == null)
+          continue;
+
+        view.HandSlot = i;
+        view.transform.SetSiblingIndex(i);
+      }
+
+      hoverFan?.BeginRound(maxSlots);
+    }
+
+    public ActionCardDefinition FindNewCardInDeckHand()
+    {
+      if (_deck == null)
+        return null;
+
+      var existing = new HashSet<ActionCardDefinition>();
+      foreach (CardView view in _cardViews)
+      {
+        if (view?.Definition != null)
+          existing.Add(view.Definition);
+      }
+
+      foreach (ActionCardDefinition card in _deck.Hand)
+      {
+        if (card != null && !existing.Contains(card) && _deck.IsCardLegalInCurrentRegion(card))
+          return card;
+      }
+
+      return null;
+    }
+
+    float AnimDur(float seconds)
+    {
+      if (_config == null)
+        return seconds;
+
+      return seconds * _config.cardAnimationDurationScale;
+    }
+
+    /// <summary>Full deal animation at the start of a driving leg.</summary>
+    public void DealHandFromDealer()
+    {
+      CloseInspectImmediate();
+      ClearHandViews();
+      RefreshHandViews(dealerDealAll: true);
     }
 
     public void RebuildHand()
     {
-      ClearHandViews();
+      RefreshHandViews(dealerDealAll: false);
+    }
 
+    void RefreshHandViews(bool dealerDealAll)
+    {
       if (_deck == null || handContainer == null)
         return;
 
+      if (dealerDealAll || _cardViews.Count == 0)
+      {
+        ClearHandViews();
+        SpawnAllHandCards(dealerDealAll);
+        AssignRoundSlots();
+        hoverFan?.RefreshFromChildren();
+        RefreshAffordability();
+        return;
+      }
+
+      var handSet = new HashSet<ActionCardDefinition>();
       foreach (ActionCardDefinition card in _deck.Hand)
       {
-        if (card == null || (_deck != null && !_deck.IsCardLegalInCurrentRegion(card)))
+        if (card != null)
+          handSet.Add(card);
+      }
+
+      for (int i = _cardViews.Count - 1; i >= 0; i--)
+      {
+        CardView view = _cardViews[i];
+        if (view == null || view.IsPlaying)
           continue;
 
-        CardView view = SpawnCardView(card);
-        if (view == null)
-          continue;
-        bool canAfford = _statResolver != null && _statResolver.CanAfford(_deck.GetCardMoneyCost(card));
-        view.Setup(card, canAfford);
-        view.SetInteractable(_drivingTurn != null && _drivingTurn.CanPlayCards);
-        view.Clicked += OnCardClicked;
-        _cardViews.Add(view);
-
-        if (_config != null && view.RectTransform != null)
+        if (view.Definition == null || !handSet.Contains(view.Definition))
         {
-          RectTransform drawRt = view.RectTransform;
-          drawRt.localScale = Vector3.one * _config.cardDrawStartScale;
-          drawRt.DOScale(1f, _config.cardDrawInDuration)
-            .SetEase(_config.cardDrawEase)
-            .SetLink(drawRt.gameObject, LinkBehaviour.KillOnDestroy);
+          view.Clicked -= OnCardClicked;
+          DestroyPlayingCardView(view);
+          _cardViews.RemoveAt(i);
         }
       }
 
-      hoverFan?.RefreshFromChildren();
+      var existing = new HashSet<ActionCardDefinition>();
+      foreach (CardView view in _cardViews)
+      {
+        if (view?.Definition != null)
+          existing.Add(view.Definition);
+      }
+
+      foreach (ActionCardDefinition card in _deck.Hand)
+      {
+        if (card == null || existing.Contains(card) || !_deck.IsCardLegalInCurrentRegion(card))
+          continue;
+
+        CardView view = SpawnAndSetupCardView(card);
+        if (view == null)
+          continue;
+
+        _cardViews.Add(view);
+        AnimateDealerThrow(view.RectTransform, 0f);
+      }
+
+      hoverFan?.SyncCardListOnly();
       RefreshAffordability();
+    }
+
+    void SpawnAllHandCards(bool dealerDealAll)
+    {
+      int dealIndex = 0;
+      foreach (ActionCardDefinition card in _deck.Hand)
+      {
+        if (card == null || !_deck.IsCardLegalInCurrentRegion(card))
+          continue;
+
+        CardView view = SpawnAndSetupCardView(card);
+        if (view == null)
+          continue;
+
+        _cardViews.Add(view);
+
+        if (dealerDealAll && _config != null)
+          AnimateDealerThrow(view.RectTransform, dealIndex * AnimDur(_config.cardDealStagger));
+        else if (_config != null && view.RectTransform != null)
+          AnimateSimpleDrawIn(view.RectTransform);
+
+        dealIndex++;
+      }
+    }
+
+    CardView SpawnAndSetupCardView(ActionCardDefinition card)
+    {
+      CardView view = SpawnCardView(card);
+      if (view == null)
+        return null;
+
+      bool canAfford = _statResolver != null && _statResolver.CanAfford(_deck.GetCardMoneyCost(card));
+      view.Setup(card, canAfford);
+      view.SetInteractable(_drivingTurn != null && _drivingTurn.CanPlayCards);
+      view.Clicked += OnCardClicked;
+      return view;
+    }
+
+    void AnimateDealerThrow(RectTransform rt, float delay)
+    {
+      if (rt == null || _config == null)
+        return;
+
+      rt.DOKill(true);
+
+      Vector2 restPos = new Vector2(0f, hoverFan != null ? GetHiddenY() : 0f);
+      float startRot = Random.Range(-_config.cardDealStartRotation, _config.cardDealStartRotation);
+      Vector2 startPos = restPos + _config.cardDealStartOffset;
+
+      rt.anchoredPosition = startPos;
+      rt.localRotation = Quaternion.Euler(0f, 0f, startRot);
+      rt.localScale = Vector3.one * _config.cardDealStartScale;
+
+      Sequence seq = DOTween.Sequence();
+      seq.SetDelay(delay);
+      seq.SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      float duration = AnimDur(_config.cardDealDuration);
+      seq.Append(rt.DOAnchorPos(restPos, duration).SetEase(_config.cardDealEase));
+      seq.Join(rt.DOLocalRotate(Vector3.zero, duration, RotateMode.Fast).SetEase(_config.cardDealEase));
+      seq.Join(rt.DOScale(1f, duration).SetEase(Ease.OutBack));
+    }
+
+    void AnimateDrawFromLeft(CardView view)
+    {
+      RectTransform rt = view?.RectTransform;
+      if (rt == null || _config == null)
+      {
+        hoverFan?.SetAwaitingDrawnCard(false);
+        return;
+      }
+
+      rt.DOKill(true);
+
+      if (hoverFan == null || !hoverFan.TryGetLayoutTargetForCard(rt, out Vector2 targetPos, out Vector3 targetRot))
+      {
+        targetPos = new Vector2(0f, GetHiddenY());
+        targetRot = Vector3.zero;
+      }
+
+      Vector2 startPos = targetPos + new Vector2(-_config.cardDrawFromLeftOffset, 0f);
+      rt.anchoredPosition = startPos;
+      rt.localRotation = Quaternion.Euler(0f, 0f, targetRot.z + 12f);
+      rt.localScale = Vector3.one * _config.cardDrawFromLeftStartScale;
+
+      float duration = AnimDur(_config.cardDrawFromLeftDuration);
+      Sequence seq = DOTween.Sequence();
+      seq.SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      seq.Append(rt.DOAnchorPos(targetPos, duration).SetEase(_config.cardDrawFromLeftEase));
+      seq.Join(rt.DOLocalRotate(targetRot, duration, RotateMode.Fast).SetEase(_config.cardDrawFromLeftEase));
+      seq.Join(rt.DOScale(1f, duration).SetEase(Ease.OutBack));
+      seq.OnComplete(() =>
+      {
+        if (hoverFan != null && rt != null)
+        {
+          hoverFan.EnjoinCardToCurrentLayout(rt, immediate: false, () => hoverFan.SetAwaitingDrawnCard(false));
+          return;
+        }
+
+        hoverFan?.SetAwaitingDrawnCard(false);
+      });
+    }
+
+    float GetHorizontalSpacing()
+    {
+      return hoverFan != null ? hoverFan.HorizontalSpacing : 70f;
+    }
+
+    float GetHiddenY()
+    {
+      return hoverFan != null ? hoverFan.HiddenAnchoredY : -100f;
+    }
+
+    void AnimateSimpleDrawIn(RectTransform rt)
+    {
+      if (rt == null || _config == null)
+        return;
+
+      rt.localScale = Vector3.one * _config.cardDrawStartScale;
+      rt.DOScale(1f, AnimDur(_config.cardDrawInDuration))
+        .SetEase(_config.cardDrawEase)
+        .SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
     }
 
     CardView SpawnCardView(ActionCardDefinition card)
@@ -132,8 +390,128 @@ namespace VanGame.UI
       }
     }
 
+    void OpenInspect(CardView view)
+    {
+      if (view == null || view.RectTransform == null || _config == null)
+        return;
+
+      CloseInspectImmediate();
+
+      _inspectedCard = view;
+      hoverFan?.SetInspectMode(true);
+
+      RectTransform rt = view.RectTransform;
+      _inspectState = new InspectState
+      {
+        parent = rt.parent,
+        siblingIndex = rt.GetSiblingIndex(),
+        anchoredPosition = rt.anchoredPosition,
+        localEulerAngles = rt.localEulerAngles,
+        localScale = rt.localScale
+      };
+
+      view.SetDescriptionVisible(true);
+      view.SetInteractable(false);
+
+      RectTransform animationRoot = GetPlayAnimationRoot();
+      rt.SetParent(animationRoot, true);
+      rt.SetAsLastSibling();
+      rt.DOKill(true);
+
+      float duration = AnimDur(_config.cardInspectDuration);
+      rt.DOAnchorPos(Vector2.zero, duration).SetEase(_config.cardInspectEase).SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      rt.DOScale(_config.cardInspectScale, duration).SetEase(_config.cardInspectEase).SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      rt.DOLocalRotate(Vector3.zero, duration, RotateMode.Fast).SetEase(_config.cardInspectEase).SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+    }
+
+    void CloseInspect()
+    {
+      if (_inspectedCard == null || _inspectedCard.RectTransform == null)
+      {
+        CloseInspectImmediate();
+        return;
+      }
+
+      CardView view = _inspectedCard;
+      RectTransform rt = view.RectTransform;
+      float duration = _config != null ? AnimDur(_config.cardInspectDuration * 0.85f) : 0.38f;
+      Ease ease = _config != null ? _config.cardInspectEase : Ease.InOutCubic;
+
+      rt.DOKill(true);
+      rt.DOAnchorPos(_inspectState.anchoredPosition, duration).SetEase(ease).SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      rt.DOScale(_inspectState.localScale, duration).SetEase(ease).SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy);
+      rt.DOLocalRotate(_inspectState.localEulerAngles, duration, RotateMode.Fast).SetEase(ease)
+        .SetLink(rt.gameObject, LinkBehaviour.KillOnDestroy)
+        .OnComplete(() => FinishCloseInspect(view));
+    }
+
+    void FinishCloseInspect(CardView view)
+    {
+      if (view == null)
+      {
+        CloseInspectImmediate();
+        return;
+      }
+
+      RectTransform rt = view.RectTransform;
+      if (rt != null && _inspectState.parent != null)
+      {
+        rt.SetParent(_inspectState.parent, false);
+        rt.SetSiblingIndex(_inspectState.siblingIndex);
+        rt.anchoredPosition = _inspectState.anchoredPosition;
+        rt.localEulerAngles = _inspectState.localEulerAngles;
+        rt.localScale = _inspectState.localScale;
+      }
+
+      view.SetDescriptionVisible(false);
+      view.SetInteractable(_drivingTurn != null && _drivingTurn.CanPlayCards);
+      _inspectedCard = null;
+      hoverFan?.SetInspectMode(false);
+      hoverFan?.RefreshFromChildren();
+    }
+
+    void CloseInspectImmediate()
+    {
+      if (_inspectedCard == null)
+        return;
+
+      CardView view = _inspectedCard;
+      RectTransform rt = view.RectTransform;
+      if (rt != null)
+      {
+        rt.DOKill(true);
+        if (_inspectState.parent != null)
+        {
+          rt.SetParent(_inspectState.parent, false);
+          rt.SetSiblingIndex(_inspectState.siblingIndex);
+          rt.anchoredPosition = _inspectState.anchoredPosition;
+          rt.localEulerAngles = _inspectState.localEulerAngles;
+          rt.localScale = _inspectState.localScale;
+        }
+      }
+
+      view.SetDescriptionVisible(false);
+      view.SetInteractable(_drivingTurn != null && _drivingTurn.CanPlayCards);
+      _inspectedCard = null;
+      hoverFan?.SetInspectMode(false);
+    }
+
+    public void ClearAwaitingDrawnCard()
+    {
+      hoverFan?.SetAwaitingDrawnCard(false);
+    }
+
+    public int ConsumePendingDrawSlot()
+    {
+      int slot = _pendingDrawSlot;
+      _pendingDrawSlot = -1;
+      return slot;
+    }
+
     public void AnimateCardPlay(CardView view, System.Action onComplete)
     {
+      CloseInspectImmediate();
+
       if (view == null)
       {
         onComplete?.Invoke();
@@ -142,11 +520,14 @@ namespace VanGame.UI
 
       view.Clicked -= OnCardClicked;
       view.SetPlaying(true);
+      _pendingDrawSlot = view.HandSlot;
       _cardViews.Remove(view);
+      hoverFan?.SetAwaitingDrawnCard(true);
 
       RectTransform rt = view.RectTransform;
       if (rt == null || _config == null)
       {
+        hoverFan?.SetAwaitingDrawnCard(false);
         DestroyPlayingCardView(view);
         onComplete?.Invoke();
         hoverFan?.RefreshFromChildren();
@@ -154,12 +535,12 @@ namespace VanGame.UI
       }
 
       rt.DOKill(true);
-      hoverFan?.RefreshFromChildren();
 
       RectTransform animationRoot = GetPlayAnimationRoot();
       rt.SetParent(animationRoot, true);
       rt.SetAsLastSibling();
-      hoverFan?.RefreshFromChildren();
+      hoverFan?.SyncSlotsAfterRemoval();
+
       CanvasGroup group = rt.GetComponent<CanvasGroup>();
       if (group == null)
         group = rt.gameObject.AddComponent<CanvasGroup>();
@@ -167,9 +548,9 @@ namespace VanGame.UI
       group.alpha = 1f;
       group.DOKill(true);
       Vector2 center = Vector2.zero;
-      float moveDuration = _config.cardPlayMoveToCenterDuration;
-      float holdDuration = _config.cardPlayCenterHoldDuration;
-      float vanishDuration = _config.cardPlayVanishDuration;
+      float moveDuration = AnimDur(_config.cardPlayMoveToCenterDuration);
+      float holdDuration = AnimDur(_config.cardPlayCenterHoldDuration);
+      float vanishDuration = AnimDur(_config.cardPlayVanishDuration);
       float peakScale = _config.cardPlayCenterScale;
       float spin = _config.cardPlaySpinDegrees;
 
@@ -197,7 +578,6 @@ namespace VanGame.UI
       if (view != null)
         DestroyPlayingCardView(view);
 
-      hoverFan?.RefreshFromChildren();
       onComplete?.Invoke();
     }
 
@@ -234,12 +614,15 @@ namespace VanGame.UI
 
     void OnCardClicked(CardView view)
     {
+      if (_inspectedCard != null)
+        return;
+
       _drivingTurn?.TryPlayCard(view);
     }
 
-    /// <summary>Clears spawned card views without changing deck state (e.g. when a leg ends).</summary>
     public void ClearHandVisuals()
     {
+      CloseInspectImmediate();
       ClearHandViews();
     }
 

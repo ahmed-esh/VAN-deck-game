@@ -8,31 +8,27 @@ namespace VanGame.Data
   {
     public string deckName;
 
-    [Header("Card prefabs (recommended)")]
-    [Tooltip("One prefab per card type. Each prefab needs ActionCardPrefab + CardView and a linked ActionCardDefinition.")]
-    public ActionCardPrefab[] startingHandPrefabs = System.Array.Empty<ActionCardPrefab>();
+    [Header("Hand")]
+    [Min(1)] public int handSize = 8;
 
-    [Tooltip("Draw pile order. Same card can appear more than once.")]
+    [Header("Card prefabs (recommended)")]
+    [Tooltip("Full deck. Same card can appear more than once. Each prefab needs ActionCardPrefab + CardView.")]
     public ActionCardPrefab[] drawPoolPrefabs = System.Array.Empty<ActionCardPrefab>();
 
     [Header("Fallback (definitions only)")]
-    [Tooltip("Used when prefab lists are empty. CardHandController must have a fallback CardView prefab.")]
-    public ActionCardDefinition[] startingHandCards = System.Array.Empty<ActionCardDefinition>();
-
+    [Tooltip("Used when Draw Pool Prefabs is empty. CardHandController must have a fallback CardView prefab.")]
     public ActionCardDefinition[] drawPoolCards = System.Array.Empty<ActionCardDefinition>();
 
     [Tooltip("When the draw pool is empty, shuffle discard back into draw.")]
-    public bool recycleDiscardWhenEmpty;
+    public bool recycleDiscardWhenEmpty = true;
 
     [Header("Draw order")]
-    [Tooltip("Randomize draw pile order when the run starts.")]
+    [Tooltip("Randomize the full deck when a driving leg (round) begins.")]
     public bool shuffleDrawPoolOnInit = true;
 
     [Tooltip("Randomize discard when it is shuffled back into the draw pile.")]
     public bool shuffleDiscardOnRecycle = true;
 
-    public bool UsesPrefabDeck =>
-      (startingHandPrefabs != null && startingHandPrefabs.Length > 0)
-      || (drawPoolPrefabs != null && drawPoolPrefabs.Length > 0);
+    public bool UsesPrefabDeck => drawPoolPrefabs != null && drawPoolPrefabs.Length > 0;
   }
 }

@@ -20,8 +20,11 @@ MonoBehaviour:
   drivingDaySectionCount: 8
   drivingDayIdleFillMinutes: 30
   dailyFuelDrainPercent: 15
+  dailyVanConditionDrainPercent: 5
   unfedMoralePenaltyPercent: 50
   dietErUnfedMoralePenaltyPercent: 25
+  parallaxCardPlaySpeedBoost: 3
+  parallaxSpeedDecayPerSecond: 1.5
   cardPlayMoveToCenterDuration: 0.4
   cardPlayCenterHoldDuration: 0.12
   cardPlayVanishDuration: 0.45

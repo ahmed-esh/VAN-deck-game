@@ -150,6 +150,162 @@ namespace VanGame.Core
       return Mathf.Clamp(card.GetDayTimeSections(), 1, 4);
     }
 
+    public CardEffectPreview BuildCardEffectPreview(ActionCardDefinition card)
+    {
+      var preview = new CardEffectPreview();
+
+      if (_runState == null || card == null)
+        return preview;
+
+      preview.MoneyBefore = _runState.Money;
+      preview.FuelBefore = _runState.FuelPercent;
+      preview.MoraleBefore = _runState.MoralePercent;
+      preview.VanBefore = _runState.VanConditionPercent;
+      preview.TimerSectionsBefore = _runState.DrivingDayTimer;
+
+      int money = _runState.Money;
+      float fuel = _runState.FuelPercent;
+      float morale = _runState.MoralePercent;
+      float van = _runState.VanConditionPercent;
+
+      int cost = GetPreviewMoneyCost(card);
+      if (cost != 0)
+      {
+        money = Mathf.Max(0, money - cost);
+        preview.AffectsMoney = true;
+      }
+
+      if (card.HasAuthoredEffects)
+        SimulateCardEffects(card.effects, ref money, ref fuel, ref morale, ref van, ref preview);
+      else
+        SimulateLegacyCardEffects(card, ref fuel, ref morale, ref van, ref preview);
+
+      preview.MoneyAfter = money;
+      preview.FuelAfter = Mathf.Clamp(fuel, 0f, 100f);
+      preview.MoraleAfter = Mathf.Clamp(morale, 0f, 100f);
+      preview.VanAfter = Mathf.Clamp(van, 0f, 100f);
+      preview.TimerSectionsAfter = Mathf.Min(
+        preview.TimerSectionsBefore + GetCardDayTimeSections(card),
+        GetMaxTimerSections());
+      preview.AffectsTimer = GetCardDayTimeSections(card) > 0;
+
+      if (!preview.AffectsMoney && preview.MoneyAfter != preview.MoneyBefore)
+        preview.AffectsMoney = true;
+
+      return preview;
+    }
+
+    int GetPreviewMoneyCost(ActionCardDefinition card)
+    {
+      if (card == null)
+        return 0;
+
+      int cost = card.moneyCostMin;
+      return Mathf.RoundToInt(ApplyModifier(ModifierTarget.MoneyCost, cost));
+    }
+
+    int GetMaxTimerSections()
+    {
+      if (gameConfig == null)
+        return 8;
+
+      return Mathf.Max(1, gameConfig.drivingDaySectionCount);
+    }
+
+    void SimulateLegacyCardEffects(
+      ActionCardDefinition card,
+      ref float fuel,
+      ref float morale,
+      ref float van,
+      ref CardEffectPreview preview)
+    {
+      if (Mathf.Abs(card.moraleDeltaPercent) > 0.001f)
+      {
+        morale = ApplyPreviewMorale(morale, CardStatOperation.Add, card.moraleDeltaPercent);
+        preview.AffectsMorale = true;
+      }
+
+      if (Mathf.Abs(card.fuelDeltaPercent) > 0.001f)
+      {
+        fuel = ApplyPreviewFuel(fuel, CardStatOperation.Add, card.fuelDeltaPercent);
+        preview.AffectsFuel = true;
+      }
+
+      if (Mathf.Abs(card.vanConditionDelta) > 0.001f)
+      {
+        van = ApplyPreviewVan(van, CardStatOperation.Add, card.vanConditionDelta);
+        preview.AffectsVan = true;
+      }
+    }
+
+    void SimulateCardEffects(
+      CardEffect[] effects,
+      ref int money,
+      ref float fuel,
+      ref float morale,
+      ref float van,
+      ref CardEffectPreview preview)
+    {
+      if (effects == null)
+        return;
+
+      foreach (CardEffect effect in effects)
+      {
+        switch (effect.target)
+        {
+          case CardEffectTarget.Money:
+            money = Mathf.Max(0, money + Mathf.RoundToInt(ResolveCardEffectValue(money, effect)));
+            preview.AffectsMoney = true;
+            break;
+          case CardEffectTarget.Morale:
+            morale = ApplyPreviewMorale(morale, effect.operation, effect.value);
+            preview.AffectsMorale = true;
+            break;
+          case CardEffectTarget.Fuel:
+            fuel = ApplyPreviewFuel(fuel, effect.operation, effect.value);
+            preview.AffectsFuel = true;
+            break;
+          case CardEffectTarget.VanCondition:
+            van = ApplyPreviewVan(van, effect.operation, effect.value);
+            preview.AffectsVan = true;
+            break;
+        }
+      }
+    }
+
+    static float ApplyPreviewMorale(float current, CardStatOperation operation, float value)
+    {
+      if (operation == CardStatOperation.Add || operation == CardStatOperation.Subtract)
+      {
+        float delta = operation == CardStatOperation.Add ? value : -value;
+        return Mathf.Clamp(current + delta, 0f, 100f);
+      }
+
+      return Mathf.Clamp(CardEffectMath.Apply(current, operation, value), 0f, 100f);
+    }
+
+    static float ApplyPreviewFuel(float current, CardStatOperation operation, float value)
+    {
+      if (operation == CardStatOperation.Add || operation == CardStatOperation.Subtract)
+      {
+        float delta = operation == CardStatOperation.Add ? value : -value;
+        return Mathf.Clamp(current + delta, 0f, 100f);
+      }
+
+      return Mathf.Clamp(CardEffectMath.Apply(current, operation, value), 0f, 100f);
+    }
+
+    static float ApplyPreviewVan(float current, CardStatOperation operation, float value)
+    {
+      if (operation == CardStatOperation.Add || operation == CardStatOperation.Subtract)
+      {
+        float delta = operation == CardStatOperation.Add ? value : -value;
+        return Mathf.Clamp(current + delta, 0f, 100f);
+      }
+
+      return Mathf.Clamp(CardEffectMath.Apply(current, operation, value), 0f, 100f);
+    }
+
     void ApplyLegacyCardEffects(ActionCardDefinition card)
     {
       ApplyMoraleDelta(card.moraleDeltaPercent);

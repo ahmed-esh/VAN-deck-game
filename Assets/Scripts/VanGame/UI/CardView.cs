@@ -18,10 +18,13 @@ namespace VanGame.UI
     ActionCardDefinition _definition;
     bool _interactable = true;
     bool _isPlaying;
+    int _handSlot = -1;
 
     public ActionCardDefinition Definition => _definition;
     public RectTransform RectTransform => transform as RectTransform;
     public bool IsPlaying => _isPlaying;
+    public bool IsInteractable => _interactable;
+    public int HandSlot { get => _handSlot; set => _handSlot = value; }
 
     public event Action<CardView> Clicked;
 
@@ -88,7 +91,7 @@ namespace VanGame.UI
       Clicked?.Invoke(this);
     }
 
-    void SetDescriptionVisible(bool visible)
+    public void SetDescriptionVisible(bool visible)
     {
       if (descriptionRoot != null)
       {

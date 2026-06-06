@@ -39,7 +39,7 @@ namespace VanGame.Editor
 
       AssetDatabase.SaveAssets();
       EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-      Debug.Log("Example card prefab ready. See inactive '" + SceneExampleName + "' under CardHandArea and MainDeck.startingHandPrefabs[0].");
+      Debug.Log("Example card prefab ready. See inactive '" + SceneExampleName + "' under CardHandArea and MainDeck.drawPoolPrefabs.");
     }
 
     static GameObject EnsureExamplePrefab(ActionCardDefinition snack)
@@ -81,7 +81,7 @@ namespace VanGame.Editor
       if (deck == null || cardPrefab == null)
         return;
 
-      deck.startingHandPrefabs = new[] { cardPrefab };
+      deck.drawPoolPrefabs = new[] { cardPrefab };
       EditorUtility.SetDirty(deck);
     }
 

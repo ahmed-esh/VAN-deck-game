@@ -36,6 +36,8 @@ namespace VanGame.Core
 
     public void NotifyStatsChanged() => StatsChanged?.Invoke();
 
+    public void NotifyDestinationSelected(CityDefinition city) => DestinationSelected?.Invoke(city);
+
     public void SetPhase(GamePhase phase)
     {
       if (Phase == phase)

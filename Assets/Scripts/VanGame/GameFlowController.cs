@@ -89,6 +89,7 @@ namespace VanGame
     public void StartNewRun()
     {
       _runState.ResetFromConfig(gameConfig, startCity, destinationCity);
+      _runState.NotifyDestinationSelected(null);
       deckController?.Initialize(deckDefinition);
       drivingTurn?.OnLegEnded();
       statsHud?.Refresh();
@@ -171,6 +172,7 @@ namespace VanGame
       _runState.DrivingDaysRemaining = drivingDays;
       _runState.DrivingDayTimer = 0f;
       _runState.HasPickedFirstDestination = true;
+      _runState.NotifyDestinationSelected(destination);
 
       canvasTransition?.ConfirmCitySelection(region, BeginDrivingLeg);
     }
@@ -199,6 +201,7 @@ namespace VanGame
       _runState.CurrentCity = arrivedCity;
       _runState.MarkCityVisited(arrivedCity);
       _runState.DestinationCity = null;
+      _runState.NotifyDestinationSelected(null);
       mapController?.RefreshRegionStates();
       deckController?.SetCurrentRegion(arrivedCity);
 

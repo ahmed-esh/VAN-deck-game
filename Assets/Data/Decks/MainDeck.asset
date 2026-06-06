@@ -13,18 +13,45 @@ MonoBehaviour:
   m_Name: MainDeck
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.DeckDefinition
   deckName: Main Deck
-  startingHandPrefabs:
-  - {fileID: 8811223344556677889, guid: a6993daf6ff9d4e95989abc09a581990, type: 3}
-  - {fileID: 8811223344556677889, guid: b8c9d0e1f2a34b5c6d7e8f9012345678, type: 3}
+  handSize: 8
   drawPoolPrefabs:
-  - {fileID: 8811223344556677889, guid: a6993daf6ff9d4e95989abc09a581990, type: 3}
-  - {fileID: 8811223344556677889, guid: b8c9d0e1f2a34b5c6d7e8f9012345678, type: 3}
-  startingHandCards:
-  - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
-  - {fileID: 11400000, guid: 7b31144dd512249fcbbac2cbf5cf2f04, type: 2}
+  - {fileID: 8811223344556677889, guid: 7829187dac85040548544fb9837889e7, type: 3}
+  - {fileID: 8811223344556677889, guid: c1c629a04aabd4b60b0f0f8ae0c610a5, type: 3}
+  - {fileID: 8811223344556677889, guid: fb20516af22854e4d9e5255d91629461, type: 3}
+  - {fileID: 8811223344556677889, guid: 61812ad1d4e8d44e0bb211e63a85d8ef, type: 3}
+  - {fileID: 8811223344556677889, guid: 29016117cb7a242c88c62b545968159c, type: 3}
+  - {fileID: 8811223344556677889, guid: ce7c63a942aba4f35805fcbe8dc78c2a, type: 3}
+  - {fileID: 8811223344556677889, guid: 657900449052d49af99bb1a55d8138d7, type: 3}
+  - {fileID: 8811223344556677889, guid: b95a8f253417c426eb7543763a7c9259, type: 3}
+  - {fileID: 8811223344556677889, guid: bef5dce97aee04759a024cf1fce65bc8, type: 3}
+  - {fileID: 8811223344556677889, guid: 4738239198f714cdeaef0012c40ef31d, type: 3}
+  - {fileID: 8811223344556677889, guid: e92d9ab135e494876a7e0ef303b08f35, type: 3}
+  - {fileID: 8811223344556677889, guid: d6c41f08a82ff49348aa824013e83ccd, type: 3}
+  - {fileID: 8811223344556677889, guid: ce1142fd2cb4548c894198e5b31994d1, type: 3}
+  - {fileID: 8811223344556677889, guid: 096b3a19c95e54ad787f76d9b299669c, type: 3}
+  - {fileID: 8811223344556677889, guid: 4d67893efacb14a9a89bb2a0cd944df8, type: 3}
+  - {fileID: 8811223344556677889, guid: e1bb9db32127941fbbff6a4d3da05a40, type: 3}
+  - {fileID: 8811223344556677889, guid: 30c50ccaeec874452aaa98945057f632, type: 3}
+  - {fileID: 8811223344556677889, guid: 40f7a9aafdc7742acb9f77060b15d457, type: 3}
   drawPoolCards:
-  - {fileID: 11400000, guid: 7b31144dd512249fcbbac2cbf5cf2f04, type: 2}
-  - {fileID: 11400000, guid: 30fad332497204fd7ae3d9da143da007, type: 2}
+  - {fileID: 11400000, guid: ae338afa298bd46488c99991ab36ce3b, type: 2}
+  - {fileID: 11400000, guid: 7decd4b28a5624ae084da0730bb239a4, type: 2}
+  - {fileID: 11400000, guid: a490126130c6d460c8300bd0a1fbfab5, type: 2}
+  - {fileID: 11400000, guid: 3a887dcfeec964ff784711fddc52fda5, type: 2}
+  - {fileID: 11400000, guid: 3943aee616e7247c19e7cc78190bd7dc, type: 2}
+  - {fileID: 11400000, guid: 2f142513a1fdf444292410f5fa23da67, type: 2}
+  - {fileID: 11400000, guid: 2750bc0cbe9824bc2888347bf84ae982, type: 2}
+  - {fileID: 11400000, guid: 828d05c53bfba4e60b6bd36b55fb1c11, type: 2}
+  - {fileID: 11400000, guid: 4be5e1c4d508e470097bb68ae384a366, type: 2}
+  - {fileID: 11400000, guid: 07fa04d4fb7b747b1ab775af7df62d0d, type: 2}
+  - {fileID: 11400000, guid: 9f318c837e6ff43ab9d8dc1ca9d03038, type: 2}
+  - {fileID: 11400000, guid: 9215103cafb6344ada93f65bdcdd99c4, type: 2}
+  - {fileID: 11400000, guid: 7b4807355273944458ac54712cdeaff9, type: 2}
+  - {fileID: 11400000, guid: 757f16123e9454d87b14be45b49ad403, type: 2}
+  - {fileID: 11400000, guid: 4248a8ea8c44c4c58b3ee510236e8b59, type: 2}
+  - {fileID: 11400000, guid: 3db2674cd0c7e497a9c2548fc8db89fb, type: 2}
+  - {fileID: 11400000, guid: 00a9c79abec12402a8ed480077269487, type: 2}
+  - {fileID: 11400000, guid: e6cf42d11ee2e44a796e8c30570735ee, type: 2}
   recycleDiscardWhenEmpty: 1
   shuffleDrawPoolOnInit: 1
   shuffleDiscardOnRecycle: 1

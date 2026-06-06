@@ -2,6 +2,7 @@ using UnityEngine;
 using VanGame;
 using VanGame.Core;
 using VanGame.Data;
+using VanGame.Visual;
 
 namespace VanGame.UI
 {
@@ -14,6 +15,8 @@ namespace VanGame.UI
     [SerializeField] EndOfDayResolver endOfDayResolver;
     [SerializeField] CardHandController cardHand;
     [SerializeField] DrivingDayTimerView timerView;
+    [SerializeField] DrivingTerrainByCity drivingTerrain;
+    [SerializeField] CardPlayPreviewController playPreview;
 
     bool _isLegActive;
     bool _isEndingDay;
@@ -25,6 +28,12 @@ namespace VanGame.UI
     {
       if (gameFlow == null)
         gameFlow = FindObjectOfType<GameFlowController>();
+
+      if (drivingTerrain == null)
+        drivingTerrain = FindFirstObjectByType<DrivingTerrainByCity>();
+
+      if (playPreview == null)
+        playPreview = FindFirstObjectByType<CardPlayPreviewController>();
     }
 
     void Start()
@@ -64,7 +73,7 @@ namespace VanGame.UI
         return;
 
       float idleSections = gameConfig.IdleSectionsPerSecond * Time.deltaTime;
-      AdvanceDrivingDaySections(idleSections);
+      AdvanceDrivingDaySections(idleSections, TimerBarAnimateMode.Immediate);
     }
 
     bool CanAdvanceTimer()
@@ -94,8 +103,10 @@ namespace VanGame.UI
       run.FedToday = false;
 
       deckController?.SetCurrentRegion(run.CurrentCity);
-      cardHand?.RebuildHand();
+      deckController?.BeginRound();
+      cardHand?.DealHandFromDealer();
       cardHand?.SetHandInteractable(true);
+      drivingTerrain?.ResetActiveParallaxSpeed();
       RefreshTimerUi();
     }
 
@@ -124,28 +135,39 @@ namespace VanGame.UI
 
     void PlayCard(CardView view, ActionCardDefinition card)
     {
-      cardHand?.AnimateCardPlay(view, null);
+      cardHand?.SetHandRebuildSuspended(true);
+      drivingTerrain?.BoostActiveParallaxSpeed();
+
+      CardEffectPreview preview = statResolver.BuildCardEffectPreview(card);
+      playPreview?.ClearHoverPreview();
 
       statResolver.ApplyCardEffects(card);
+      playPreview?.PlayApplyAnimation(preview);
 
       int sections = statResolver.GetCardDayTimeSections(card);
-      AdvanceDrivingDaySections(sections);
+      AdvanceDrivingDaySections(sections, TimerBarAnimateMode.CardPlay);
 
-      if (!deckController.TryPlayCard(card, out _))
-        return;
+      cardHand?.AnimateCardPlay(view, () =>
+      {
+        if (deckController != null && deckController.TryPlayCard(card, out _))
+          cardHand?.AddDrawnCardToSlot(cardHand.ConsumePendingDrawSlot());
+        else
+          cardHand?.ClearAwaitingDrawnCard();
 
-      cardHand?.RefreshAffordability();
+        cardHand?.SetHandRebuildSuspended(false);
+        cardHand?.RefreshAffordability();
 
-      if (CheckLoseAfterAction())
-        return;
+        if (CheckLoseAfterAction())
+          return;
 
-      if (ShouldEndDrivingDay())
-        EndDrivingDay();
+        if (ShouldEndDrivingDay())
+          EndDrivingDay();
 
-      RefreshTimerUi();
+        timerView?.RefreshHeaderOnly();
+      });
     }
 
-    void AdvanceDrivingDaySections(float sectionDelta)
+    void AdvanceDrivingDaySections(float sectionDelta, TimerBarAnimateMode barMode = TimerBarAnimateMode.Immediate)
     {
       if (gameConfig == null || gameFlow == null || sectionDelta <= 0f)
         return;
@@ -153,7 +175,7 @@ namespace VanGame.UI
       RunState run = gameFlow.RunState;
       float maxSections = GetDrivingDaySectionCount();
       run.DrivingDayTimer = Mathf.Min(run.DrivingDayTimer + sectionDelta, maxSections);
-      RefreshTimerUi();
+      RefreshTimerUi(barMode);
 
       if (ShouldEndDrivingDay())
         EndDrivingDay();
@@ -224,13 +246,16 @@ namespace VanGame.UI
       return true;
     }
 
-    void RefreshTimerUi()
+    void RefreshTimerUi(TimerBarAnimateMode barMode = TimerBarAnimateMode.Immediate)
     {
       if (timerView == null || gameFlow == null)
         return;
 
-      timerView.Refresh();
-      timerView.RefreshTimer(gameFlow.RunState.DrivingDayTimer, GetDrivingDaySectionCount());
+      timerView.RefreshHeaderOnly();
+      timerView.RefreshTimer(
+        gameFlow.RunState.DrivingDayTimer,
+        GetDrivingDaySectionCount(),
+        barMode);
     }
   }
 }

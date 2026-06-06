@@ -21,6 +21,7 @@ namespace VanGame.Core
 
     public IReadOnlyList<ActionCardDefinition> Hand => _hand;
     public CityDefinition CurrentRegion => _currentRegion;
+    public int HandSize => deckDefinition != null ? Mathf.Max(1, deckDefinition.handSize) : 8;
 
     public void Initialize(DeckDefinition deck)
     {
@@ -35,29 +36,28 @@ namespace VanGame.Core
       if (deckDefinition == null)
         return;
 
-      if (deckDefinition.UsesPrefabDeck)
-      {
-        RegisterPrefabs(deckDefinition.startingHandPrefabs);
-        RegisterPrefabs(deckDefinition.drawPoolPrefabs);
-        AddPrefabsToHand(deckDefinition.startingHandPrefabs);
-        AddPrefabsToPool(deckDefinition.drawPoolPrefabs);
-      }
+      BuildDrawPoolFromDefinition();
+      NotifyHandChanged();
+    }
 
-      if (deckDefinition.startingHandCards != null)
-      {
-        foreach (ActionCardDefinition card in deckDefinition.startingHandCards)
-        {
-          if (card != null && !_hand.Contains(card))
-            _hand.Add(card);
-        }
-      }
+    /// <summary>
+    /// Shuffles hand + discard back into draw, then deals until the hand is full.
+    /// Call at the start of each driving leg.
+    /// </summary>
+    public void BeginRound()
+    {
+      if (deckDefinition == null)
+        return;
 
-      if (_drawPool.Count == 0 && deckDefinition.drawPoolCards != null)
-        _drawPool.AddRange(deckDefinition.drawPoolCards);
+      ReturnHandAndDiscardToDrawPool();
+
+      if (_drawPool.Count == 0)
+        BuildDrawPoolFromDefinition();
 
       if (deckDefinition.shuffleDrawPoolOnInit)
         ShuffleList(_drawPool);
 
+      RefillHandToSize();
       NotifyHandChanged();
     }
 
@@ -65,6 +65,7 @@ namespace VanGame.Core
     {
       _currentRegion = region;
       ApplyRegionToHand();
+      RefillHandToSize();
       NotifyHandChanged();
     }
 
@@ -77,13 +78,36 @@ namespace VanGame.Core
           continue;
 
         _hand.RemoveAt(i);
-        _drawPool.Insert(0, card);
+        _drawPool.Add(card);
       }
     }
 
     public bool IsCardLegalInCurrentRegion(ActionCardDefinition card)
     {
       return card != null && card.IsLegalInRegion(_currentRegion);
+    }
+
+    void BuildDrawPoolFromDefinition()
+    {
+      _drawPool.Clear();
+
+      if (deckDefinition.UsesPrefabDeck)
+      {
+        RegisterPrefabs(deckDefinition.drawPoolPrefabs);
+        AddPrefabsToPool(deckDefinition.drawPoolPrefabs);
+        return;
+      }
+
+      if (deckDefinition.drawPoolCards != null)
+        _drawPool.AddRange(deckDefinition.drawPoolCards);
+    }
+
+    void ReturnHandAndDiscardToDrawPool()
+    {
+      _drawPool.AddRange(_hand);
+      _drawPool.AddRange(_discard);
+      _hand.Clear();
+      _discard.Clear();
     }
 
     void RegisterPrefabs(ActionCardPrefab[] prefabs)
@@ -93,15 +117,6 @@ namespace VanGame.Core
 
       foreach (ActionCardPrefab prefab in prefabs)
         RegisterCardPrefab(prefab);
-    }
-
-    void AddPrefabsToHand(ActionCardPrefab[] prefabs)
-    {
-      if (prefabs == null)
-        return;
-
-      foreach (ActionCardPrefab prefab in prefabs)
-        AddCardFromPrefab(prefab, _hand);
     }
 
     void AddPrefabsToPool(ActionCardPrefab[] prefabs)
@@ -161,7 +176,7 @@ namespace VanGame.Core
 
       _hand.Remove(card);
       _discard.Add(card);
-      DrawNextCard();
+      RefillHandToSize();
 
       if (_hand.Count > 0)
         drawnCard = _hand[_hand.Count - 1];
@@ -170,18 +185,28 @@ namespace VanGame.Core
       return true;
     }
 
-    void NotifyHandChanged() => HandChanged?.Invoke();
+    void RefillHandToSize()
+    {
+      int target = HandSize;
+      int safety = Mathf.Max(_drawPool.Count + _discard.Count + target, target) + 8;
 
-    void DrawNextCard()
+      while (_hand.Count < target && safety-- > 0)
+      {
+        if (!TryDrawOneCardIntoHand())
+          break;
+      }
+    }
+
+    bool TryDrawOneCardIntoHand()
     {
       if (_drawPool.Count == 0 && !TryRecycleDiscard())
-        return;
+        return false;
 
-      int safety = _drawPool.Count;
+      int safety = Mathf.Max(_drawPool.Count, 1);
       for (int attempt = 0; attempt < safety; attempt++)
       {
         if (_drawPool.Count == 0 && !TryRecycleDiscard())
-          return;
+          return false;
 
         ActionCardDefinition next = _drawPool[0];
         _drawPool.RemoveAt(0);
@@ -189,11 +214,13 @@ namespace VanGame.Core
         if (IsCardLegalInCurrentRegion(next))
         {
           _hand.Add(next);
-          return;
+          return true;
         }
 
         _drawPool.Add(next);
       }
+
+      return false;
     }
 
     bool TryRecycleDiscard()
@@ -209,6 +236,8 @@ namespace VanGame.Core
 
       return _drawPool.Count > 0;
     }
+
+    void NotifyHandChanged() => HandChanged?.Invoke();
 
     static void ShuffleList(List<ActionCardDefinition> list)
     {

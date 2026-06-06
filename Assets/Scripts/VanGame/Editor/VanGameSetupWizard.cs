@@ -158,8 +158,9 @@ namespace VanGame.Editor
 
       DeckDefinition deck = LoadOrCreate<DeckDefinition>(DecksPath + "/MainDeck.asset");
       deck.deckName = "Main Deck";
-      deck.startingHandCards = new[] { snack, fuel };
+      deck.handSize = 8;
       deck.drawPoolCards = new[] { foodTruck, cookVan, snack, fuel };
+      deck.recycleDiscardWhenEmpty = true;
 
       RandomEventDefinition traffic = LoadOrCreate<RandomEventDefinition>(EventsPath + "/Event_TrafficDelay.asset");
       traffic.eventId = "traffic_delay";

@@ -24,6 +24,7 @@ namespace VanGame.Core
         return;
 
       _statResolver.ApplyFuelDelta(-gameConfig.dailyFuelDrainPercent);
+      _statResolver.ApplyVanDelta(-gameConfig.dailyVanConditionDrainPercent);
 
       if (!_runState.FedToday)
       {
