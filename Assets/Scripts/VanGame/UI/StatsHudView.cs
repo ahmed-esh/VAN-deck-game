@@ -34,6 +34,13 @@ namespace VanGame.UI
     [SerializeField] float applyAnimDuration = 0.42f;
     [SerializeField] float applyPunchStrength = 0.05f;
     [SerializeField] Ease applyAnimEase = Ease.OutCubic;
+    [Tooltip("Preview text offset from the original stat label (X = right, Y = up).")]
+    [SerializeField] Vector2 previewOffsetFromSource = new Vector2(10f, 8f);
+    [Tooltip("Extra offset per stat, added on top of Preview Offset From Source.")]
+    [SerializeField] Vector2 moneyPreviewOffset;
+    [SerializeField] Vector2 fuelPreviewOffset;
+    [SerializeField] Vector2 moralePreviewOffset;
+    [SerializeField] Vector2 vanPreviewOffset;
 
     RunState _runState;
     GameConfig _config;
@@ -96,10 +103,10 @@ namespace VanGame.UI
     {
       EnsurePreviewLabels();
 
-      SetPreviewLabel(_moneyPreview, moneyText, preview.AffectsMoney, string.Format(moneyFormat, preview.MoneyAfter));
-      SetPreviewLabel(_fuelPreview, fuelText, preview.AffectsFuel, string.Format(percentFormat, preview.FuelAfter));
-      SetPreviewLabel(_moralePreview, moraleText, preview.AffectsMorale, string.Format(percentFormat, preview.MoraleAfter));
-      SetPreviewLabel(_vanPreview, vanText, preview.AffectsVan, string.Format(percentFormat, preview.VanAfter));
+      SetPreviewLabel(_moneyPreview, moneyText, preview.AffectsMoney, string.Format(moneyFormat, preview.MoneyAfter), moneyPreviewOffset);
+      SetPreviewLabel(_fuelPreview, fuelText, preview.AffectsFuel, string.Format(percentFormat, preview.FuelAfter), fuelPreviewOffset);
+      SetPreviewLabel(_moralePreview, moraleText, preview.AffectsMorale, string.Format(percentFormat, preview.MoraleAfter), moralePreviewOffset);
+      SetPreviewLabel(_vanPreview, vanText, preview.AffectsVan, string.Format(percentFormat, preview.VanAfter), vanPreviewOffset);
     }
 
     public void ClearCardPreview()
@@ -173,31 +180,51 @@ namespace VanGame.UI
       _suppressRefresh = false;
     }
 
-    void EnsurePreviewLabels()
+    void EnsurePreviewLabel(TMP_Text source, ref TMP_Text preview, Vector2 extraOffset)
     {
-      EnsurePreviewLabel(moneyText, ref _moneyPreview);
-      EnsurePreviewLabel(fuelText, ref _fuelPreview);
-      EnsurePreviewLabel(moraleText, ref _moralePreview);
-      EnsurePreviewLabel(vanText, ref _vanPreview);
-    }
-
-    void EnsurePreviewLabel(TMP_Text source, ref TMP_Text preview)
-    {
-      if (source == null || preview != null)
+      if (source == null)
         return;
 
-      preview = Instantiate(source, source.transform);
-      preview.name = source.name + "_Preview";
-      preview.raycastTarget = false;
-      preview.fontMaterial = Instantiate(source.fontSharedMaterial);
-      ApplyHollowStyle(preview);
+      if (preview == null)
+      {
+        preview = Instantiate(source, source.rectTransform.parent);
+        preview.name = source.name + "_Preview";
+        preview.raycastTarget = false;
+        preview.fontMaterial = Instantiate(source.fontSharedMaterial);
+        ApplyHollowStyle(preview);
+        preview.gameObject.SetActive(false);
+      }
 
+      ApplyPreviewLayout(preview, source, extraOffset);
+    }
+
+    void ApplyPreviewLayout(TMP_Text preview, TMP_Text source, Vector2 extraOffset)
+    {
+      if (preview == null || source == null)
+        return;
+
+      RectTransform sourceRect = source.rectTransform;
       RectTransform previewRect = preview.rectTransform;
-      previewRect.anchorMin = Vector2.zero;
-      previewRect.anchorMax = Vector2.one;
-      previewRect.offsetMin = Vector2.zero;
-      previewRect.offsetMax = Vector2.zero;
-      preview.gameObject.SetActive(false);
+
+      if (previewRect.parent != sourceRect.parent)
+        previewRect.SetParent(sourceRect.parent, false);
+
+      previewRect.anchorMin = sourceRect.anchorMin;
+      previewRect.anchorMax = sourceRect.anchorMax;
+      previewRect.pivot = sourceRect.pivot;
+      previewRect.sizeDelta = sourceRect.sizeDelta;
+      previewRect.localRotation = sourceRect.localRotation;
+      previewRect.localScale = sourceRect.localScale;
+      previewRect.anchoredPosition = sourceRect.anchoredPosition + previewOffsetFromSource + extraOffset;
+      previewRect.SetSiblingIndex(sourceRect.GetSiblingIndex() + 1);
+    }
+
+    void EnsurePreviewLabels()
+    {
+      EnsurePreviewLabel(moneyText, ref _moneyPreview, moneyPreviewOffset);
+      EnsurePreviewLabel(fuelText, ref _fuelPreview, fuelPreviewOffset);
+      EnsurePreviewLabel(moraleText, ref _moralePreview, moralePreviewOffset);
+      EnsurePreviewLabel(vanText, ref _vanPreview, vanPreviewOffset);
     }
 
     void ApplyHollowStyle(TMP_Text text)
@@ -210,7 +237,7 @@ namespace VanGame.UI
       text.color = previewFaceColor;
     }
 
-    static void SetPreviewLabel(TMP_Text preview, TMP_Text source, bool active, string value)
+    void SetPreviewLabel(TMP_Text preview, TMP_Text source, bool active, string value, Vector2 extraOffset)
     {
       if (preview == null || source == null)
         return;
@@ -218,6 +245,7 @@ namespace VanGame.UI
       preview.text = value;
       preview.fontSize = source.fontSize;
       preview.alignment = source.alignment;
+      ApplyPreviewLayout(preview, source, extraOffset);
       preview.gameObject.SetActive(active);
     }
 
