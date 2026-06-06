@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1122d5b6279e24b78bca71e26e138bb3, type: 3}
+  m_Name: Special_ChangeRoute_City1
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.ActionCardDefinition
+  cardId: Special_ChangeRoute_City1
+  title: Special ChangeRoute_City1
+  description: 
+  category: 3
+  tier: 0
+  moneyCostMin: 0
+  moneyCostMax: 0
+  rollCostOnPlay: 0
+  effects:
+  - target: 2
+    operation: 1
+    value: 15
+  - target: 3
+    operation: 0
+    value: 5
+  countsAsFedToday: 0
+  dayTimeCost: 2
+  moraleDeltaPercent: 5
+  fuelDeltaPercent: 0
+  vanConditionDelta: 0
+  realTimeSeconds: 10
+  restrictToSpecificRegions: 1
+  allowedRegions:
+  - {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+  includeInStartingHand: 0
+  duplicateCount: 1

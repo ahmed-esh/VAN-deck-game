@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1122d5b6279e24b78bca71e26e138bb3, type: 3}
+  m_Name: Special_Wetland_City6
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.ActionCardDefinition
+  cardId: Special_Wetland_City6
+  title: Special_Wetland_City6
+  description: 
+  category: 3
+  tier: 0
+  moneyCostMin: 0
+  moneyCostMax: 0
+  rollCostOnPlay: 1
+  effects:
+  - target: 1
+    operation: 0
+    value: 15
+  - target: 3
+    operation: 1
+    value: 20
+  countsAsFedToday: 0
+  dayTimeCost: 3
+  moraleDeltaPercent: 5
+  fuelDeltaPercent: 0
+  vanConditionDelta: 0
+  realTimeSeconds: 10
+  restrictToSpecificRegions: 0
+  allowedRegions: []
+  includeInStartingHand: 1
+  duplicateCount: 1
