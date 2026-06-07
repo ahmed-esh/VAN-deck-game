@@ -7,77 +7,77 @@ namespace VanGame.Data
 {
   public static class SouvenirCatalog
   {
-    public const string PickScreenRootName = 'Souvenirs screen';
-    public const string PickObjectsName = 'objects Souvenirs';
-    public const string VanObjectsName = 'objects Souvenirs in the car';
-    public const string DescriptionTextOnVanName = 'description text on the van';
-    public const string LineTextName = 'line';
+    public const string PickScreenRootName = "Souvenirs screen";
+    public const string PickObjectsName = "objects Souvenirs";
+    public const string VanObjectsName = "objects Souvenirs in the car ";
+    public const string DescriptionTextOnVanName = "description text on the van";
+    public const string LineTextName = "line";
 
     public const float VanSouvenirSpacingX = 50f;
     public const float PickHoverLiftY = 18f;
 
     static readonly SouvenirRewardInfo[] RandomizableRewards =
     {
-      new SouvenirRewardInfo(SouvenirRewardType.MoneyPerSection, 'Gains $1 per section', 'Slowly, diligently providing help.'),
+      new SouvenirRewardInfo(SouvenirRewardType.MoneyPerSection, "Gains $1 per section", "Slowly, diligently providing help."),
       new SouvenirRewardInfo(
         SouvenirRewardType.ReducedFuelDrain,
-        '-12 fuel per day instead of -15',
-        '"A free promotional hybrid engine does its job", says the souvenir.'),
+        "-12 fuel per day instead of -15",
+        "\"A free promotional hybrid engine does its job\", says the souvenir."),
       new SouvenirRewardInfo(
         SouvenirRewardType.ReducedVanDrain,
-        '-4 van condition instead of -5',
-        'Reminds you of a picture from a mechanic magazine you read.'),
+        "-4 van condition instead of -5",
+        "Reminds you of a picture from a mechanic magazine you read."),
       new SouvenirRewardInfo(
         SouvenirRewardType.VanConditionRescue,
-        '+50 van condition when van condition reaches 0 (once per game)',
-        'Somehow there\'s a free BBB coupon inside.'),
+        "+50 van condition when van condition reaches 0 (once per game)",
+        "Somehow there's a free BBB coupon inside."),
       new SouvenirRewardInfo(
         SouvenirRewardType.HighMoraleCityBonus,
-        'If Morale > 90 at the end of the city, + $30',
-        'Well, this time fortune favors happy people.'),
+        "If Morale > 90 at the end of the city, + $30",
+        "Well, this time fortune favors happy people."),
       new SouvenirRewardInfo(
         SouvenirRewardType.HighVanCityBonus,
-        'If Van Condition > 90 at the end of the city, + 10 fuel',
-        'No idea why but if the souvenir says so.'),
+        "If Van Condition > 90 at the end of the city, + 10 fuel",
+        "No idea why but if the souvenir says so."),
       new SouvenirRewardInfo(
         SouvenirRewardType.BankruptcyShuffle,
-        'If cannot afford any of the cards in hand, shuffle hand (once per game) (has to be done before)',
-        'Declare bankruptcy! Just don\'t always declare bankruptcy.'),
-      new SouvenirRewardInfo(SouvenirRewardType.ExtraHandCard, '+1 hand', 'Be happy and grateful.'),
+        "If cannot afford any of the cards in hand, shuffle hand (once per game) (has to be done before)",
+        "Declare bankruptcy! Just don't always declare bankruptcy."),
+      new SouvenirRewardInfo(SouvenirRewardType.ExtraHandCard, "+1 hand", "Be happy and grateful."),
       new SouvenirRewardInfo(
         SouvenirRewardType.DoubleNextCard,
-        'The card played right after activation takes effect twice (once per round)',
-        'Let\'s double the good and bad!')
+        "The card played right after activation takes effect twice (once per round)",
+        "Let's double the good and bad!")
     };
 
     static readonly Dictionary<string, SouvenirRewardInfo> FixedSpecialByObjectName =
       new Dictionary<string, SouvenirRewardInfo>(StringComparer.Ordinal)
       {
         {
-          'South ridge 2 (special)',
-          new SouvenirRewardInfo(SouvenirRewardType.SpecialCamel, '(camel)', 'Just very cute and lovely.', false)
+          "South ridge 2 (special)",
+          new SouvenirRewardInfo(SouvenirRewardType.SpecialCamel, "(camel)", "Just very cute and lovely.", false)
         },
         {
-          'Oak Woods  1 (special)',
-          new SouvenirRewardInfo(SouvenirRewardType.SpecialBird, '(bird)', 'Somehow better and smarter-looking than the others.', false)
+          "Oak Woods  1 (special)",
+          new SouvenirRewardInfo(SouvenirRewardType.SpecialBird, "(bird)", "Somehow better and smarter-looking than the others.", false)
         },
         {
-          'Red Willow 2 (special)',
-          new SouvenirRewardInfo(SouvenirRewardType.SpecialCasino, '(casino)', 'Makes people feel good (may not help if they lose too much).', false)
+          "Red Willow 2 (special)",
+          new SouvenirRewardInfo(SouvenirRewardType.SpecialCasino, "(casino)", "Makes people feel good (may not help if they lose too much).", false)
         }
       };
 
     static readonly Dictionary<string, string[]> RegionSouvenirObjectNames =
       new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
       {
-        { 'southridge', new[] { 'South ridge 1', 'South ridge 2 (special)', 'South ridge 3 ' } },
-        { 'oakwoods', new[] { 'Oak Woods  1 (special)', 'Oak Woods  2', 'Oak Woods 3' } },
-        { 'redwillow', new[] { 'Red Willow 1', 'Red Willow 2 (special)', 'Red Willow 3' } },
-        { 'argylle', new[] { 'Argylle 1', 'Argylle 2', 'Argylle 3' } },
-        { 'foxcreek', new[] { 'Fox Creek  1', 'Fox Creek  2', 'Fox Creek  3' } },
-        { 'carolinton', new[] { 'Carolinton 1', 'Carolinton 2', 'Carolinton 3' } },
-        { 'louisville', new[] { 'Louisville 1', 'Louisville 2', 'Louisville 3' } },
-        { 'dentone', new[] { 'denote 1', 'denote 2', 'denote 3' } }
+        { "southridge", new[] { "South ridge 1", "South ridge 2 (special)", "South ridge 3 " } },
+        { "oakwoods", new[] { "Oak Woods  1 (special)", "Oak Woods  2", "Oak Woods 3" } },
+        { "redwillow", new[] { "Red Willow 1", "Red Willow 2 (special)", "Red Willow 3" } },
+        { "argylle", new[] { "Argylle 1", "Argylle 2", "Argylle 3" } },
+        { "foxcreek", new[] { "Fox Creek  1", "Fox Creek  2", "Fox Creek  3" } },
+        { "carolinton", new[] { "Carolinton 1", "Carolinton 2", "Carolinton 3" } },
+        { "louisville", new[] { "Louisville 1", "Louisville 2", "Louisville 3" } },
+        { "dentone", new[] { "denote 1", "denote 2", "denote 3" } }
       };
 
     public static IReadOnlyList<SouvenirRewardInfo> GetRandomizableRewards() => RandomizableRewards;
@@ -118,11 +118,11 @@ namespace VanGame.Data
       }
 
       if (type == SouvenirRewardType.SpecialCamel)
-        return GetFixedSpecial('South ridge 2 (special)');
+        return GetFixedSpecial("South ridge 2 (special)");
       if (type == SouvenirRewardType.SpecialBird)
-        return GetFixedSpecial('Oak Woods  1 (special)');
+        return GetFixedSpecial("Oak Woods  1 (special)");
       if (type == SouvenirRewardType.SpecialCasino)
-        return GetFixedSpecial('Red Willow 2 (special)');
+        return GetFixedSpecial("Red Willow 2 (special)");
 
       return default;
     }
@@ -192,7 +192,7 @@ namespace VanGame.Data
       if (string.IsNullOrWhiteSpace(value))
         return string.Empty;
 
-      return value.Trim().ToLowerInvariant().Replace(' ', string.Empty);
+      return value.Trim().ToLowerInvariant().Replace(" ", string.Empty);
     }
   }
 }

@@ -27,17 +27,66 @@ namespace VanGame.UI
     Action<string> _onPicked;
     RunState _runState;
     int _hoveredSlotIndex = -1;
+    bool _isInitialized;
 
     void Awake()
     {
       if (root == null)
         root = gameObject;
+    }
 
+    void EnsureInitialized()
+    {
+      if (_isInitialized)
+        return;
+
+      _isInitialized = true;
+      ResolveReferences();
       CachePickObjects();
       _textSlots[0] = textLeft;
       _textSlots[1] = textCenter;
       _textSlots[2] = textRight;
-      Hide(immediate: true);
+    }
+
+    void ResolveReferences()
+    {
+      if (root == null)
+        root = gameObject;
+
+      if (pickObjectsRoot == null && root != null)
+      {
+        Transform found = root.transform.Find(SouvenirCatalog.PickObjectsName);
+        if (found != null)
+          pickObjectsRoot = found;
+      }
+
+      if (lineText == null && root != null)
+      {
+        Transform line = root.transform.Find(SouvenirCatalog.LineTextName);
+        if (line != null)
+          lineText = line.GetComponent<TextMeshProUGUI>();
+      }
+
+      if (textLeft == null && root != null)
+      {
+        Transform found = root.transform.Find("text left");
+        if (found != null)
+          textLeft = found.GetComponent<Image>();
+      }
+
+      if (textCenter == null && root != null)
+      {
+        Transform found = root.transform.Find("text center");
+        if (found != null)
+          textCenter = found.GetComponent<Image>();
+      }
+
+      if (textRight == null && root != null)
+      {
+        Transform found = root.transform.Find("text right");
+        if (found != null)
+          textRight = found.GetComponent<Image>();
+      }
     }
 
     void CachePickObjects()
@@ -68,17 +117,12 @@ namespace VanGame.UI
 
     public void ShowOffer(RunState runState, CityDefinition city, Action<string> onPicked)
     {
+      EnsureInitialized();
+
       _runState = runState;
       _onPicked = onPicked;
       ClearActiveItems();
       _hoveredSlotIndex = -1;
-
-      if (lineText == null && root != null)
-      {
-        Transform line = root.transform.Find(SouvenirCatalog.LineTextName);
-        if (line != null)
-          lineText = line.GetComponent<TextMeshProUGUI>();
-      }
 
       if (root != null)
         root.SetActive(true);

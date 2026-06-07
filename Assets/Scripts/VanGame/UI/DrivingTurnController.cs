@@ -151,7 +151,7 @@ namespace VanGame.UI
       {
         statResolver.ApplyCardEffects(card);
         souvenirRewards.MarkDoubleCardUsed();
-        gameFlow.RunState.EventLog.Add('Souvenir bonus: card effects applied twice.');
+        gameFlow.RunState.EventLog.Add("Souvenir bonus: card effects applied twice.");
       }
 
       playPreview?.PlayApplyAnimation(preview);

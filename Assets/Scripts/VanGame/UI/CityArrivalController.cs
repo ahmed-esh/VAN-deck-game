@@ -22,6 +22,11 @@ namespace VanGame.UI
     Action _onArrivalComplete;
     CityDefinition _arrivedCity;
 
+    void Awake()
+    {
+      ResolveReferences();
+    }
+
     public void Initialize(RunState runState, GameConfig config, StatResolver stats, CityRandomEventResolver events)
     {
       _runState = runState;
@@ -30,6 +35,23 @@ namespace VanGame.UI
       statResolver = stats;
       eventResolver = events;
       eventResolver?.Configure(config);
+      ResolveReferences();
+      abilityPick?.Hide(immediate: true);
+    }
+
+    void ResolveReferences()
+    {
+      if (souvenirPick == null)
+        souvenirPick = FindFirstObjectByType<SouvenirPickController>(FindObjectsInactive.Include);
+
+      if (souvenirsInVan == null)
+        souvenirsInVan = FindFirstObjectByType<SouvenirsInVanView>(FindObjectsInactive.Include);
+
+      if (souvenirRewards == null)
+        souvenirRewards = FindFirstObjectByType<SouvenirRewardResolver>(FindObjectsInactive.Include);
+
+      if (eventLogView == null)
+        eventLogView = FindFirstObjectByType<EventLogView>(FindObjectsInactive.Include);
     }
 
     public void ProcessArrival(CityDefinition city, Action onComplete)

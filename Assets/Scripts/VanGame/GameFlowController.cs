@@ -48,9 +48,22 @@ namespace VanGame
 
     void Awake()
     {
+      ResolveReferences();
       WireButtons();
       InitializeSystems();
       StartNewRun();
+    }
+
+    void ResolveReferences()
+    {
+      if (souvenirRewards == null)
+        souvenirRewards = GetComponent<SouvenirRewardResolver>();
+
+      if (souvenirsInVan == null)
+        souvenirsInVan = GetComponent<SouvenirsInVanView>();
+
+      if (cityArrival == null)
+        cityArrival = GetComponent<CityArrivalController>();
     }
 
     void Update()

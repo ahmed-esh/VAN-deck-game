@@ -73,13 +73,13 @@ namespace VanGame.Core
       if (OwnsReward(SouvenirRewardType.HighMoraleCityBonus) && _runState.MoralePercent > 90f)
       {
         _statResolver.ApplyMoneyDelta(30);
-        _runState.EventLog.Add('Souvenir bonus: +$30 for high morale in the city.');
+        _runState.EventLog.Add("Souvenir bonus: +$30 for high morale in the city.");
       }
 
       if (OwnsReward(SouvenirRewardType.HighVanCityBonus) && _runState.VanConditionPercent > 90f)
       {
         _statResolver.ApplyFuelDelta(10f);
-        _runState.EventLog.Add('Souvenir bonus: +10 fuel for great van condition in the city.');
+        _runState.EventLog.Add("Souvenir bonus: +10 fuel for great van condition in the city.");
       }
     }
 
@@ -96,7 +96,7 @@ namespace VanGame.Core
 
       _runState.UsedVanConditionRescue = true;
       _statResolver.ApplyVanDelta(50f);
-      _runState.EventLog.Add('Souvenir rescue: +50 van condition from the BBB coupon.');
+      _runState.EventLog.Add("Souvenir rescue: +50 van condition from the BBB coupon.");
       return true;
     }
 
@@ -113,7 +113,7 @@ namespace VanGame.Core
 
       _runState.UsedBankruptcyShuffle = true;
       _deckController.ShuffleHandOnly();
-      _runState.EventLog.Add('Souvenir bankruptcy shuffle: your hand was reshuffled.');
+      _runState.EventLog.Add("Souvenir bankruptcy shuffle: your hand was reshuffled.");
       return true;
     }
 

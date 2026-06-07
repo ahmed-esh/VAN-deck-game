@@ -26,7 +26,7 @@ namespace VanGame.UI
     {
       EnsureVanObjectsRoot();
       EnsureDescriptionText();
-      BuildVanObjectsIfNeeded();
+      RegisterPreplacedVanObjects();
       HideDescription();
     }
 
@@ -51,7 +51,7 @@ namespace VanGame.UI
         return;
 
       Transform canvasCards = FindCanvasCards();
-      Transform found = canvasCards != null ? canvasCards.Find(SouvenirCatalog.VanObjectsName) : null;
+      Transform found = FindVanObjectsRoot(canvasCards);
       if (found != null)
       {
         vanObjectsRoot = found;
@@ -69,27 +69,134 @@ namespace VanGame.UI
       vanObjectsRoot = rect;
     }
 
+    static Transform FindVanObjectsRoot(Transform canvasCards)
+    {
+      if (canvasCards == null)
+        return null;
+
+      Transform found = canvasCards.Find(SouvenirCatalog.VanObjectsName);
+      if (found != null)
+        return found;
+
+      for (int i = 0; i < canvasCards.childCount; i++)
+      {
+        Transform child = canvasCards.GetChild(i);
+        if (child.name.Trim() == SouvenirCatalog.VanObjectsName.Trim())
+          return child;
+      }
+
+      return canvasCards.FindDeepChild(SouvenirCatalog.VanObjectsName.Trim());
+    }
+
     void EnsureDescriptionText()
     {
       if (descriptionText != null)
         return;
 
-      Transform searchRoot = FindCanvasCards() ?? transform;
-      Transform found = searchRoot.Find(SouvenirCatalog.DescriptionTextOnVanName);
-      if (found == null)
-        found = searchRoot.FindDeepChild(SouvenirCatalog.DescriptionTextOnVanName);
+      if (vanObjectsRoot != null)
+      {
+        Transform found = vanObjectsRoot.Find(SouvenirCatalog.DescriptionTextOnVanName);
+        if (found != null)
+        {
+          descriptionText = found.GetComponent<TextMeshProUGUI>();
+          return;
+        }
+      }
 
-      if (found != null)
-        descriptionText = found.GetComponent<TextMeshProUGUI>();
+      Transform searchRoot = FindCanvasCards() ?? transform;
+      Transform foundInCanvas = searchRoot.Find(SouvenirCatalog.DescriptionTextOnVanName);
+      if (foundInCanvas == null)
+        foundInCanvas = searchRoot.FindDeepChild(SouvenirCatalog.DescriptionTextOnVanName);
+
+      if (foundInCanvas != null)
+        descriptionText = foundInCanvas.GetComponent<TextMeshProUGUI>();
     }
 
     Transform FindCanvasCards()
     {
-      GameObject canvas = GameObject.Find('Canvas_Cards');
+      GameObject canvas = GameObject.Find("Canvas_Cards");
       return canvas != null ? canvas.transform : null;
     }
 
-    void BuildVanObjectsIfNeeded()
+    void RegisterPreplacedVanObjects()
+    {
+      if (vanObjectsRoot == null)
+        return;
+
+      for (int i = 0; i < vanObjectsRoot.childCount; i++)
+      {
+        Transform child = vanObjectsRoot.GetChild(i);
+        if (child == null || IsDescriptionTextObject(child))
+          continue;
+
+        RegisterVanObject(child.gameObject);
+      }
+    }
+
+    static bool IsDescriptionTextObject(Transform child)
+    {
+      return child.name == SouvenirCatalog.DescriptionTextOnVanName;
+    }
+
+    void RegisterVanObject(GameObject vanObject)
+    {
+      if (vanObject == null)
+        return;
+
+      string objectName = vanObject.name;
+      _vanObjectsByName[objectName] = vanObject;
+      vanObject.SetActive(false);
+
+      Image image = vanObject.GetComponent<Image>();
+      if (image != null)
+        image.raycastTarget = true;
+
+      SouvenirVanItem item = vanObject.GetComponent<SouvenirVanItem>();
+      if (item == null)
+        item = vanObject.AddComponent<SouvenirVanItem>();
+
+      item.Configure(objectName);
+      item.Hovered -= OnVanItemHovered;
+      item.Unhovered -= OnVanItemUnhovered;
+      item.Hovered += OnVanItemHovered;
+      item.Unhovered += OnVanItemUnhovered;
+
+      if (vanObject.GetComponent<SouvenirVanShake2D>() == null)
+        vanObject.AddComponent<SouvenirVanShake2D>();
+    }
+
+    void EnsureVanObject(string objectName)
+    {
+      if (string.IsNullOrWhiteSpace(objectName) || vanObjectsRoot == null)
+        return;
+
+      if (_vanObjectsByName.TryGetValue(objectName, out GameObject existing) && existing != null)
+        return;
+
+      Transform preplaced = vanObjectsRoot.Find(objectName);
+      if (preplaced != null)
+      {
+        RegisterVanObject(preplaced.gameObject);
+        return;
+      }
+
+      Transform template = FindPickTemplate(objectName);
+      if (template == null)
+        return;
+
+      GameObject clone = Instantiate(template.gameObject, vanObjectsRoot);
+      clone.name = objectName;
+      RegisterVanObject(clone);
+
+      RectTransform rect = clone.transform as RectTransform;
+      if (rect != null)
+      {
+        rect.localScale = Vector3.one * vanScale;
+        rect.pivot = new Vector2(0.5f, 0f);
+      }
+    }
+
+    Transform FindPickTemplate(string objectName)
     {
       if (pickObjectsTemplateRoot == null)
       {
@@ -101,75 +208,22 @@ namespace VanGame.UI
           pickObjectsTemplateRoot = pickScreen.Find(SouvenirCatalog.PickObjectsName);
       }
 
-      if (pickObjectsTemplateRoot == null || vanObjectsRoot == null)
-        return;
-
-      for (int i = 0; i < pickObjectsTemplateRoot.childCount; i++)
-      {
-        Transform template = pickObjectsTemplateRoot.GetChild(i);
-        if (template == null || _vanObjectsByName.ContainsKey(template.name))
-          continue;
-
-        EnsureVanObject(template.name);
-      }
-    }
-
-    void EnsureVanObject(string objectName)
-    {
-      if (string.IsNullOrWhiteSpace(objectName) || vanObjectsRoot == null)
-        return;
-
-      if (_vanObjectsByName.TryGetValue(objectName, out GameObject existing) && existing != null)
-        return;
-
-      Transform template = FindPickTemplate(objectName);
-      if (template == null)
-        return;
-
-      GameObject clone = Instantiate(template.gameObject, vanObjectsRoot);
-      clone.name = objectName;
-      clone.SetActive(false);
-
-      RectTransform rect = clone.transform as RectTransform;
-      if (rect != null)
-      {
-        rect.localScale = Vector3.one * vanScale;
-        rect.pivot = new Vector2(0.5f, 0f);
-      }
-
-      Image image = clone.GetComponent<Image>();
-      if (image != null)
-        image.raycastTarget = true;
-
-      SouvenirVanItem item = clone.GetComponent<SouvenirVanItem>();
-      if (item == null)
-        item = clone.AddComponent<SouvenirVanItem>();
-
-      item.Configure(objectName);
-      item.Hovered -= OnVanItemHovered;
-      item.Unhovered -= OnVanItemUnhovered;
-      item.Hovered += OnVanItemHovered;
-      item.Unhovered += OnVanItemUnhovered;
-
-      if (clone.GetComponent<SouvenirVanShake2D>() == null)
-        clone.AddComponent<SouvenirVanShake2D>();
-
-      _vanObjectsByName[objectName] = clone;
-    }
-
-    Transform FindPickTemplate(string objectName)
-    {
       if (pickObjectsTemplateRoot == null)
         return null;
 
-      Transform found = pickObjectsTemplateRoot.Find(objectName);
-      return found;
+      return pickObjectsTemplateRoot.Find(objectName);
     }
 
     public void RefreshOwnedSouvenirs()
     {
       if (_runState == null || vanObjectsRoot == null)
         return;
+
+      foreach (KeyValuePair<string, GameObject> entry in _vanObjectsByName)
+      {
+        if (entry.Value != null)
+          entry.Value.SetActive(false);
+      }
 
       int slot = 0;
       foreach (string objectName in _runState.OwnedSouvenirIds)
@@ -181,7 +235,7 @@ namespace VanGame.UI
         vanObject.SetActive(true);
         RectTransform rect = vanObject.transform as RectTransform;
         if (rect != null)
-          rect.anchoredPosition = new Vector2(slot * slotSpacingX, 0f);
+          rect.anchoredPosition = new Vector2(slot * slotSpacingX, rect.anchoredPosition.y);
 
         SouvenirVanShake2D shake = vanObject.GetComponent<SouvenirVanShake2D>();
         shake?.StartShake();
@@ -221,7 +275,7 @@ namespace VanGame.UI
       for (int i = 0; i < parent.childCount; i++)
       {
         Transform child = parent.GetChild(i);
-        if (child.name == childName)
+        if (child.name == childName || child.name.Trim() == childName.Trim())
           return child;
 
         Transform nested = child.FindDeepChild(childName);

@@ -45,14 +45,14 @@ namespace VanGame.UI
       Transform root = transform;
       if (bg1 == null)
       {
-        Transform found = root.Find('BG1');
+        Transform found = root.Find("BG1");
         if (found != null)
           bg1 = found.GetComponent<Image>();
       }
 
       if (bg2 == null)
       {
-        Transform found = root.Find('BG2');
+        Transform found = root.Find("BG2");
         if (found != null)
           bg2 = found.GetComponent<Image>();
       }
