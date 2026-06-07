@@ -45,11 +45,18 @@ namespace VanGame.Core
     public HashSet<CityDefinition> VisitedCities { get; } = new HashSet<CityDefinition>();
     public List<CityRoadPair> TraveledRoads { get; } = new List<CityRoadPair>();
     public List<AbilityDefinition> OwnedAbilities { get; } = new List<AbilityDefinition>();
+    public List<string> OwnedSouvenirIds { get; } = new List<string>();
+    public Dictionary<string, SouvenirRewardType> SouvenirRewardAssignments { get; } =
+      new Dictionary<string, SouvenirRewardType>();
     public List<string> EventLog { get; } = new List<string>();
 
     public bool FedToday { get; set; }
     public bool HasPickedFirstDestination { get; set; }
     public bool HasReceivedFirstCityReward { get; set; }
+    public bool UsedBankruptcyShuffle { get; set; }
+    public bool UsedVanConditionRescue { get; set; }
+    public bool UsedDoubleCardThisRound { get; set; }
+    public bool DoubleNextCardEffect { get; set; }
 
     public event Action StatsChanged;
     public event Action PhaseChanged;
@@ -120,9 +127,15 @@ namespace VanGame.Core
       FedToday = false;
       HasPickedFirstDestination = false;
       HasReceivedFirstCityReward = false;
+      UsedBankruptcyShuffle = false;
+      UsedVanConditionRescue = false;
+      UsedDoubleCardThisRound = false;
+      DoubleNextCardEffect = false;
       VisitedCities.Clear();
       TraveledRoads.Clear();
       OwnedAbilities.Clear();
+      OwnedSouvenirIds.Clear();
+      SouvenirRewardAssignments.Clear();
       EventLog.Clear();
 
       if (startCity != null)

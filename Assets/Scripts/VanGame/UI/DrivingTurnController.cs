@@ -17,6 +17,7 @@ namespace VanGame.UI
     [SerializeField] DrivingDayTimerView timerView;
     [SerializeField] DrivingTerrainByCity drivingTerrain;
     [SerializeField] CardPlayPreviewController playPreview;
+    [SerializeField] SouvenirRewardResolver souvenirRewards;
 
     bool _isLegActive;
     bool _isEndingDay;
@@ -47,7 +48,7 @@ namespace VanGame.UI
 
       if (gameFlow != null && statResolver != null && endOfDayResolver != null)
       {
-        endOfDayResolver.Initialize(gameFlow.RunState, statResolver, gameConfig);
+        endOfDayResolver.Initialize(gameFlow.RunState, statResolver, gameConfig, souvenirRewards);
         cardHand?.Initialize(deckController, statResolver, this, gameConfig);
       }
 
@@ -104,6 +105,8 @@ namespace VanGame.UI
       run.FedToday = false;
 
       deckController?.SetCurrentRegion(run.CurrentCity);
+      deckController?.RefreshHandSizeBonus();
+      souvenirRewards?.BeginDrivingRound();
       deckController?.BeginRound();
       cardHand?.DealHandFromDealer();
       cardHand?.SetHandInteractable(true);
@@ -144,6 +147,13 @@ namespace VanGame.UI
       playPreview?.ClearHoverPreview();
 
       statResolver.ApplyCardEffects(card);
+      if (souvenirRewards != null && souvenirRewards.ShouldDoubleCardEffects())
+      {
+        statResolver.ApplyCardEffects(card);
+        souvenirRewards.MarkDoubleCardUsed();
+        gameFlow.RunState.EventLog.Add('Souvenir bonus: card effects applied twice.');
+      }
+
       playPreview?.PlayApplyAnimation(preview);
 
       int sections = statResolver.GetCardDayTimeSections(card);
@@ -176,7 +186,12 @@ namespace VanGame.UI
 
       RunState run = gameFlow.RunState;
       float maxSections = GetDrivingDaySectionCount();
+      int sectionsBefore = Mathf.FloorToInt(run.DrivingDayTimer);
       run.DrivingDayTimer = Mathf.Min(run.DrivingDayTimer + sectionDelta, maxSections);
+      int sectionsGained = Mathf.FloorToInt(run.DrivingDayTimer) - sectionsBefore;
+      if (sectionsGained > 0)
+        souvenirRewards?.OnDrivingSectionAdvanced(sectionsGained);
+
       RefreshTimerUi(barMode);
 
       if (ShouldEndDrivingDay())

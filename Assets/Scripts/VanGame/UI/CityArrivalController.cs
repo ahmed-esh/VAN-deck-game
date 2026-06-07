@@ -13,6 +13,9 @@ namespace VanGame.UI
     [SerializeField] CityRandomEventResolver eventResolver;
     [SerializeField] EventLogView eventLogView;
     [SerializeField] AbilityPickController abilityPick;
+    [SerializeField] SouvenirPickController souvenirPick;
+    [SerializeField] SouvenirsInVanView souvenirsInVan;
+    [SerializeField] SouvenirRewardResolver souvenirRewards;
     [SerializeField] GameObject drivingPanel;
 
     RunState _runState;
@@ -102,21 +105,27 @@ namespace VanGame.UI
         return;
       }
 
-      _runState.SetPhase(GamePhase.AbilityPick);
-      abilityPick?.ShowOffer(_runState, OnAbilityPicked);
+      souvenirRewards?.ApplyCityEndBonuses();
+
+      _runState.SetPhase(GamePhase.SouvenirPick);
+      souvenirPick?.ShowOffer(_runState, _arrivedCity, OnSouvenirPicked);
     }
 
-    void OnAbilityPicked(AbilityDefinition ability)
+    void OnSouvenirPicked(string souvenirObjectName)
     {
-      if (ability != null && _runState != null)
+      if (!string.IsNullOrWhiteSpace(souvenirObjectName) && _runState != null)
       {
-        _runState.OwnedAbilities.Add(ability);
+        if (!_runState.OwnedSouvenirIds.Contains(souvenirObjectName))
+          _runState.OwnedSouvenirIds.Add(souvenirObjectName);
+
         _runState.HasReceivedFirstCityReward = true;
-        _runState.EventLog.Add($"Learned: {ability.title}");
+        SouvenirRewardInfo info = SouvenirCatalog.GetInfo(_runState, souvenirObjectName);
+        _runState.EventLog.Add($"Collected souvenir: {info.FunctionText}");
         _runState.NotifyStatsChanged();
+        souvenirsInVan?.OnSouvenirPicked(souvenirObjectName);
       }
 
-      abilityPick?.Hide(immediate: true);
+      souvenirPick?.Hide(immediate: true);
       FinishArrival();
     }
 
@@ -124,6 +133,7 @@ namespace VanGame.UI
     {
       eventLogView?.Hide(immediate: true);
       abilityPick?.Hide(immediate: true);
+      souvenirPick?.Hide(immediate: true);
 
       if (drivingPanel != null)
         drivingPanel.SetActive(true);

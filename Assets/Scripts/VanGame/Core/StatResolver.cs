@@ -45,12 +45,23 @@ namespace VanGame.Core
       _runState.NotifyStatsChanged();
     }
 
+    SouvenirRewardResolver _souvenirRewards;
+
+    public void ConfigureSouvenirRewards(SouvenirRewardResolver souvenirRewards)
+    {
+      _souvenirRewards = souvenirRewards;
+    }
+
     public void ApplyVanDelta(float delta)
     {
       if (_runState == null)
         return;
 
       _runState.VanConditionPercent = Mathf.Clamp(_runState.VanConditionPercent + delta, 0f, 100f);
+
+      if (_runState.VanConditionPercent <= 0f)
+        _souvenirRewards?.TryRescueVanCondition();
+
       _runState.NotifyStatsChanged();
     }
 
@@ -490,6 +501,12 @@ namespace VanGame.Core
     {
       if (_runState == null || gameConfig == null)
         return false;
+
+      if (deck != null && IsStuckWithUnaffordableHand(deck))
+      {
+        if (_souvenirRewards != null && _souvenirRewards.TryBankruptcyShuffle())
+          return CheckLoseConditions(deck);
+      }
 
       if (_runState.Money <= 0)
         return true;

@@ -16,12 +16,19 @@ namespace VanGame.Core
     readonly Dictionary<ActionCardDefinition, ActionCardPrefab> _prefabByDefinition = new Dictionary<ActionCardDefinition, ActionCardPrefab>();
 
     CityDefinition _currentRegion;
+    SouvenirRewardResolver _souvenirRewards;
+    int _handSizeBonus;
 
     public event Action HandChanged;
 
     public IReadOnlyList<ActionCardDefinition> Hand => _hand;
     public CityDefinition CurrentRegion => _currentRegion;
-    public int HandSize => deckDefinition != null ? Mathf.Max(1, deckDefinition.handSize) : 8;
+    public int HandSize => Mathf.Max(1, GetBaseHandSize() + _handSizeBonus);
+
+    int GetBaseHandSize()
+    {
+      return deckDefinition != null ? deckDefinition.handSize : 8;
+    }
 
     public void Initialize(DeckDefinition deck)
     {
@@ -32,12 +39,24 @@ namespace VanGame.Core
       _drawPool.Clear();
       _discard.Clear();
       _prefabByDefinition.Clear();
+      RefreshHandSizeBonus();
 
       if (deckDefinition == null)
         return;
 
       BuildDrawPoolFromDefinition();
       NotifyHandChanged();
+    }
+
+    public void ConfigureSouvenirRewards(SouvenirRewardResolver souvenirRewards)
+    {
+      _souvenirRewards = souvenirRewards;
+      RefreshHandSizeBonus();
+    }
+
+    public void RefreshHandSizeBonus()
+    {
+      _handSizeBonus = _souvenirRewards != null ? _souvenirRewards.GetExtraHandSize() : 0;
     }
 
     /// <summary>
@@ -266,6 +285,12 @@ namespace VanGame.Core
     }
 
     void NotifyHandChanged() => HandChanged?.Invoke();
+
+    public void ShuffleHandOnly()
+    {
+      ShuffleList(_hand);
+      NotifyHandChanged();
+    }
 
     static void ShuffleList(List<ActionCardDefinition> list)
     {

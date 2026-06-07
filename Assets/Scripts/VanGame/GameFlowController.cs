@@ -25,6 +25,8 @@ namespace VanGame
     [SerializeField] DrivingTurnController drivingTurn;
     [SerializeField] CityArrivalController cityArrival;
     [SerializeField] CityRandomEventResolver randomEventResolver;
+    [SerializeField] SouvenirRewardResolver souvenirRewards;
+    [SerializeField] SouvenirsInVanView souvenirsInVan;
 
     [Header("UI buttons")]
     [SerializeField] Button openMapButton;
@@ -86,6 +88,10 @@ namespace VanGame
       statsHud?.Bind(_runState, gameConfig);
       randomEventResolver?.Configure(gameConfig);
       cityArrival?.Initialize(_runState, gameConfig, statResolver, randomEventResolver);
+      souvenirRewards?.Initialize(_runState, statResolver, deckController, gameConfig);
+      statResolver?.ConfigureSouvenirRewards(souvenirRewards);
+      deckController?.ConfigureSouvenirRewards(souvenirRewards);
+      souvenirsInVan?.Initialize(_runState);
       winScrollPanel?.Initialize(this, statResolver, gameConfig);
       loseScrollPanel?.Initialize(this, statResolver, gameConfig);
     }
@@ -93,6 +99,7 @@ namespace VanGame
     public void StartNewRun()
     {
       _runState.ResetFromConfig(gameConfig, startCity, destinationCity);
+      SouvenirCatalog.AssignRandomRewards(_runState);
       _runState.NotifyDestinationSelected(null);
       deckController?.Initialize(deckDefinition);
       drivingTurn?.OnLegEnded();
@@ -157,7 +164,9 @@ namespace VanGame
       if (_runState.Phase == GamePhase.Win || _runState.Phase == GamePhase.Lose)
         return false;
 
-      if (_runState.Phase == GamePhase.CityArrival || _runState.Phase == GamePhase.AbilityPick)
+      if (_runState.Phase == GamePhase.CityArrival
+        || _runState.Phase == GamePhase.AbilityPick
+        || _runState.Phase == GamePhase.SouvenirPick)
         return false;
 
       return true;

@@ -9,13 +9,24 @@ namespace VanGame.Core
 
     RunState _runState;
     StatResolver _statResolver;
+    SouvenirRewardResolver _souvenirRewards;
 
-    public void Initialize(RunState runState, StatResolver statResolver, GameConfig config)
+    public void Initialize(
+      RunState runState,
+      StatResolver statResolver,
+      GameConfig config,
+      SouvenirRewardResolver souvenirRewards = null)
     {
       _runState = runState;
       _statResolver = statResolver;
+      _souvenirRewards = souvenirRewards;
       if (config != null)
         gameConfig = config;
+    }
+
+    public void ConfigureSouvenirRewards(SouvenirRewardResolver souvenirRewards)
+    {
+      _souvenirRewards = souvenirRewards;
     }
 
     public void ApplyEndOfDrivingDay()
@@ -23,8 +34,15 @@ namespace VanGame.Core
       if (_runState == null || gameConfig == null || _statResolver == null)
         return;
 
-      _statResolver.ApplyFuelDelta(-gameConfig.dailyFuelDrainPercent);
-      _statResolver.ApplyVanDelta(-gameConfig.dailyVanConditionDrainPercent);
+      float fuelDrain = _souvenirRewards != null
+        ? _souvenirRewards.GetDailyFuelDrainPercent()
+        : gameConfig.dailyFuelDrainPercent;
+      float vanDrain = _souvenirRewards != null
+        ? _souvenirRewards.GetDailyVanDrainPercent()
+        : gameConfig.dailyVanConditionDrainPercent;
+
+      _statResolver.ApplyFuelDelta(-fuelDrain);
+      _statResolver.ApplyVanDelta(-vanDrain);
 
       if (!_runState.FedToday)
       {

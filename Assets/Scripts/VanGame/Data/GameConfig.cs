@@ -24,7 +24,7 @@ namespace VanGame.Data
 
         public float IdleSectionsPerSecond =>
             drivingDaySectionCount / Mathf.Max(1f, drivingDayIdleFillMinutes * 60f);
-        public float dailyFuelDrainPercent = 5f;
+        public float dailyFuelDrainPercent = 15f;
         public float dailyVanConditionDrainPercent = 5f;
         public float unfedMoralePenaltyPercent = 50f;
         public float dietErUnfedMoralePenaltyPercent = 25f;

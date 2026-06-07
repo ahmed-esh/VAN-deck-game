@@ -46,6 +46,7 @@ namespace VanGame.Data
         Driving,
         CityArrival,
         AbilityPick,
+        SouvenirPick,
         Win,
         Lose
     }
