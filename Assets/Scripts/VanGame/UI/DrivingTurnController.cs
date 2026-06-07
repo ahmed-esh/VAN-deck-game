@@ -92,6 +92,7 @@ namespace VanGame.UI
     void OnHandChanged()
     {
       cardHand?.RefreshAffordability();
+      CheckLoseAfterAction();
     }
 
     public void OnLegStarted()
@@ -108,6 +109,7 @@ namespace VanGame.UI
       cardHand?.SetHandInteractable(true);
       drivingTerrain?.ResetActiveParallaxSpeed();
       RefreshTimerUi();
+      CheckLoseAfterAction();
     }
 
     public void OnLegEnded()
@@ -216,7 +218,7 @@ namespace VanGame.UI
       run.DrivingDaysRemaining = Mathf.Max(0, run.DrivingDaysRemaining - 1);
       run.EventLog.Add($"Finished driving day. {run.DrivingDaysRemaining} day(s) left on this leg.");
 
-      if (statResolver != null && statResolver.CheckLoseConditions())
+      if (statResolver != null && statResolver.CheckLoseConditions(deckController))
       {
         _isEndingDay = false;
         gameFlow.EnterLoseFromDriving();
@@ -238,7 +240,10 @@ namespace VanGame.UI
 
     bool CheckLoseAfterAction()
     {
-      if (statResolver == null || !statResolver.CheckLoseConditions())
+      if (!_isLegActive || gameFlow == null || gameFlow.RunState.Phase != GamePhase.Driving)
+        return false;
+
+      if (statResolver == null || !statResolver.CheckLoseConditions(deckController))
         return false;
 
       gameFlow.EnterLoseFromDriving();

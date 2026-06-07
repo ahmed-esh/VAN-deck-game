@@ -167,6 +167,34 @@ namespace VanGame.Core
         : card.moneyCostMin;
     }
 
+    public bool HasLegalCardInHand()
+    {
+      foreach (ActionCardDefinition card in _hand)
+      {
+        if (card != null && IsCardLegalInCurrentRegion(card))
+          return true;
+      }
+
+      return false;
+    }
+
+    public bool HasAffordableLegalCardInHand(StatResolver statResolver)
+    {
+      if (statResolver == null)
+        return false;
+
+      foreach (ActionCardDefinition card in _hand)
+      {
+        if (card == null || !IsCardLegalInCurrentRegion(card))
+          continue;
+
+        if (statResolver.CanAfford(GetCardMoneyCost(card)))
+          return true;
+      }
+
+      return false;
+    }
+
     public bool TryPlayCard(ActionCardDefinition card, out ActionCardDefinition drawnCard)
     {
       drawnCard = null;

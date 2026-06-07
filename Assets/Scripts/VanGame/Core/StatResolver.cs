@@ -93,6 +93,14 @@ namespace VanGame.Core
       return _runState.Money >= adjustedCost;
     }
 
+    public bool IsStuckWithUnaffordableHand(DeckController deck)
+    {
+      if (deck == null)
+        return false;
+
+      return deck.HasLegalCardInHand() && !deck.HasAffordableLegalCardInHand(this);
+    }
+
     public float GetResolvedActionDuration(float baseRealTimeSeconds)
     {
       if (baseRealTimeSeconds <= 0f)
@@ -452,13 +460,16 @@ namespace VanGame.Core
       }
     }
 
-    public string GetLoseReason()
+    public string GetLoseReason(DeckController deck = null)
     {
       if (_runState == null || gameConfig == null)
         return "You ran out of resources.";
 
       if (_runState.FuelPercent <= 0f)
         return "You ran out of fuel.";
+
+      if (deck != null && IsStuckWithUnaffordableHand(deck))
+        return "You couldn't afford any cards in your hand.";
 
       if (_runState.Money <= 0)
         return "You ran out of money.";
@@ -475,7 +486,7 @@ namespace VanGame.Core
       return "The trip ended.";
     }
 
-    public bool CheckLoseConditions()
+    public bool CheckLoseConditions(DeckController deck = null)
     {
       if (_runState == null || gameConfig == null)
         return false;
@@ -493,6 +504,9 @@ namespace VanGame.Core
         return true;
 
       if (_runState.TripDayCurrent > gameConfig.maxTripDays)
+        return true;
+
+      if (deck != null && IsStuckWithUnaffordableHand(deck))
         return true;
 
       return false;
