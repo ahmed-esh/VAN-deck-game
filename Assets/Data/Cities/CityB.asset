@@ -23,6 +23,7 @@ MonoBehaviour:
   parking: 0
   costOfLiving: 1
   funTheme: Grandpa's dream destination
+  regionDescription: ohhh the town you finally detention, your grandpa really loved this space
   baseMoraleDelta: 20
   stayDaysInCity: 1
   possibleEvents:

@@ -24,6 +24,7 @@ MonoBehaviour:
   parking: 2
   costOfLiving: 2
   funTheme: Casino City
+  regionDescription: Red Willow is THE casino city. People from all over the country go there to have fun. Parking is very limited, and costs are high. However, it gives you a chance to win money.
   baseMoraleDelta: 65
   stayDaysInCity: 4
   possibleEvents: []

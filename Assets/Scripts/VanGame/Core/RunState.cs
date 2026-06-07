@@ -4,6 +4,26 @@ using VanGame.Data;
 
 namespace VanGame.Core
 {
+  public readonly struct CityRoadPair
+  {
+    public CityDefinition From { get; }
+    public CityDefinition To { get; }
+
+    public CityRoadPair(CityDefinition from, CityDefinition to)
+    {
+      From = from;
+      To = to;
+    }
+
+    public bool Connects(CityDefinition a, CityDefinition b)
+    {
+      if (a == null || b == null)
+        return false;
+
+      return (From == a && To == b) || (From == b && To == a);
+    }
+  }
+
   public class RunState
   {
     public int Money { get; set; }
@@ -23,6 +43,7 @@ namespace VanGame.Core
     public GamePhase Phase { get; set; } = GamePhase.CardIdle;
 
     public HashSet<CityDefinition> VisitedCities { get; } = new HashSet<CityDefinition>();
+    public List<CityRoadPair> TraveledRoads { get; } = new List<CityRoadPair>();
     public List<AbilityDefinition> OwnedAbilities { get; } = new List<AbilityDefinition>();
     public List<string> EventLog { get; } = new List<string>();
 
@@ -58,6 +79,31 @@ namespace VanGame.Core
       return city != null && VisitedCities.Contains(city);
     }
 
+    public void RecordTraveledRoad(CityDefinition from, CityDefinition to)
+    {
+      if (from == null || to == null || from == to)
+        return;
+
+      foreach (CityRoadPair existing in TraveledRoads)
+      {
+        if (existing.Connects(from, to))
+          return;
+      }
+
+      TraveledRoads.Add(new CityRoadPair(from, to));
+    }
+
+    public bool HasTraveledRoad(CityDefinition a, CityDefinition b)
+    {
+      foreach (CityRoadPair pair in TraveledRoads)
+      {
+        if (pair.Connects(a, b))
+          return true;
+      }
+
+      return false;
+    }
+
     public void ResetFromConfig(GameConfig config, CityDefinition startCity, CityDefinition destinationCity)
     {
       Money = config.startingMoney;
@@ -75,6 +121,7 @@ namespace VanGame.Core
       HasPickedFirstDestination = false;
       HasReceivedFirstCityReward = false;
       VisitedCities.Clear();
+      TraveledRoads.Clear();
       OwnedAbilities.Clear();
       EventLog.Clear();
 

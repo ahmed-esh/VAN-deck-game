@@ -8,6 +8,7 @@ namespace VanGame.UI
   {
     [SerializeField] CanvasGroup canvasGroup;
     [SerializeField] TMP_Text cityNameText;
+    [SerializeField] TMP_Text descriptionText;
     [SerializeField] TMP_Text parkingText;
     [SerializeField] TMP_Text costOfLivingText;
     [SerializeField] TMP_Text funThemeText;
@@ -18,11 +19,23 @@ namespace VanGame.UI
     [Header("Labels")]
     [SerializeField] string moralePositiveFormat = "+{0} Morale";
     [SerializeField] string moraleNegativeFormat = "{0} Morale";
-    [SerializeField] string drivingDaysFormat = "{0} days to drive";
+    [SerializeField] string stayDaysFormat = "Your family will spend {0} days in {1}.";
+    [SerializeField] string drivingDaysFormat = "It will take you {0} days driving to get there from your current location.";
 
     void Awake()
     {
+      SetLegacyFieldVisible(parkingText, false);
+      SetLegacyFieldVisible(costOfLivingText, false);
+      SetLegacyFieldVisible(funThemeText, false);
       Hide(immediate: true);
+    }
+
+    static void SetLegacyFieldVisible(TMP_Text text, bool visible)
+    {
+      if (text == null)
+        return;
+
+      text.gameObject.SetActive(visible);
     }
 
     public void Show(CityDefinition city, int drivingDays)
@@ -38,14 +51,20 @@ namespace VanGame.UI
       if (cityNameText != null)
         cityNameText.text = city.displayName;
 
-      if (parkingText != null)
-        parkingText.text = city.parking.ToString();
-
-      if (costOfLivingText != null)
-        costOfLivingText.text = city.costOfLiving.ToString();
-
-      if (funThemeText != null)
-        funThemeText.text = city.funTheme;
+      if (descriptionText != null)
+      {
+        descriptionText.gameObject.SetActive(true);
+        descriptionText.text = string.IsNullOrWhiteSpace(city.regionDescription)
+          ? city.funTheme
+          : city.regionDescription;
+      }
+      else if (funThemeText != null)
+      {
+        funThemeText.gameObject.SetActive(true);
+        funThemeText.text = string.IsNullOrWhiteSpace(city.regionDescription)
+          ? city.funTheme
+          : city.regionDescription;
+      }
 
       if (moraleText != null)
         moraleText.text = city.baseMoraleDelta >= 0
@@ -53,10 +72,20 @@ namespace VanGame.UI
           : string.Format(moraleNegativeFormat, city.baseMoraleDelta);
 
       if (stayDaysText != null)
-        stayDaysText.text = city.stayDaysInCity.ToString();
+      {
+        bool showStayDays = city.stayDaysInCity > 0;
+        stayDaysText.gameObject.SetActive(showStayDays);
+        if (showStayDays)
+          stayDaysText.text = string.Format(stayDaysFormat, city.stayDaysInCity, city.displayName);
+      }
 
       if (drivingDaysText != null)
-        drivingDaysText.text = string.Format(drivingDaysFormat, drivingDays);
+      {
+        bool showDrivingDays = drivingDays > 0;
+        drivingDaysText.gameObject.SetActive(showDrivingDays);
+        if (showDrivingDays)
+          drivingDaysText.text = string.Format(drivingDaysFormat, drivingDays);
+      }
 
       if (canvasGroup != null)
       {
@@ -68,9 +97,7 @@ namespace VanGame.UI
     public void Hide(bool immediate)
     {
       if (canvasGroup != null && !immediate)
-      {
         canvasGroup.alpha = 0f;
-      }
 
       gameObject.SetActive(false);
     }

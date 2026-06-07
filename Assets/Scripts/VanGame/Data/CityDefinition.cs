@@ -23,6 +23,7 @@ namespace VanGame.Data
         public ParkingType parking = ParkingType.Available;
         public CostOfLiving costOfLiving = CostOfLiving.Low;
         [TextArea(1, 3)] public string funTheme;
+        [TextArea(3, 8)] public string regionDescription;
         public int baseMoraleDelta;
         public int stayDaysInCity = 1;
 

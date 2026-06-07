@@ -25,6 +25,7 @@ MonoBehaviour:
   parking: 2
   costOfLiving: 1
   funTheme: Skiing
+  regionDescription: Carolinton is very famous for its ski resorts. Due to its difficulty for driving and parking, the actual costs are moderate. Snow lovers should go.
   baseMoraleDelta: 25
   stayDaysInCity: 2
   possibleEvents: []

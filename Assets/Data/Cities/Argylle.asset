@@ -25,6 +25,7 @@ MonoBehaviour:
   parking: 2
   costOfLiving: 2
   funTheme: Water park
+  regionDescription: Argylle is a carnival-vibe city with parking pressure, but the water parks are known to be very fun. Given its fame, the costs are high.
   baseMoraleDelta: 50
   stayDaysInCity: 3
   possibleEvents:

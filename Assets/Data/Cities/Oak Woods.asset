@@ -24,6 +24,7 @@ MonoBehaviour:
   parking: 2
   costOfLiving: 1
   funTheme: Green woods/ rainy
+  regionDescription: Oak Woods is one of those cities with the best forest preservation. Parking and costs are both moderate, but the city is usually very wet.
   baseMoraleDelta: -15
   stayDaysInCity: 1
   possibleEvents: []

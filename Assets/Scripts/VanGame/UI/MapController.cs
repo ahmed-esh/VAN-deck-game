@@ -5,16 +5,26 @@ using VanGame.Data;
 
 namespace VanGame.UI
 {
+  public enum MapViewMode
+  {
+    DestinationSelection,
+    DrivingOverview
+  }
+
   public class MapController : MonoBehaviour
   {
     [SerializeField] MapRegionView[] mapRegions = System.Array.Empty<MapRegionView>();
     [SerializeField] MapStatsTooltipView tooltip;
     [SerializeField] MapVanMarkerView vanMarker;
+    [SerializeField] MapRoadsController roadsController;
     [SerializeField] GameObject closeMapButton;
 
     RunState _runState;
     GameFlowController _flow;
     MapRegionView _hoveredRegion;
+    MapViewMode _viewMode = MapViewMode.DestinationSelection;
+
+    public MapViewMode ViewMode => _viewMode;
 
     public void Initialize(GameFlowController flow, RunState runState)
     {
@@ -46,11 +56,19 @@ namespace VanGame.UI
     void OnRunStateChanged()
     {
       RefreshVanMarker();
+
+      if (_viewMode == MapViewMode.DrivingOverview)
+        RefreshRoadVisuals();
     }
 
     public void OnMapOpened(bool forceDestinationPick)
     {
+      _viewMode = forceDestinationPick || _runState?.DestinationCity == null
+        ? MapViewMode.DestinationSelection
+        : MapViewMode.DrivingOverview;
+
       RefreshRegionStates();
+      RefreshRoadVisuals();
 
       if (closeMapButton != null)
         closeMapButton.SetActive(!forceDestinationPick);
@@ -64,6 +82,7 @@ namespace VanGame.UI
         return;
 
       HashSet<CityDefinition> reachable = BuildReachableSet();
+      bool allowSelection = _viewMode == MapViewMode.DestinationSelection;
 
       foreach (MapRegionView region in mapRegions)
       {
@@ -76,10 +95,26 @@ namespace VanGame.UI
         bool isReachable = reachable.Contains(city);
         bool isDestination = _runState.DestinationCityAsset != null && city == _runState.DestinationCityAsset;
 
-        region.SetInteractableState(isReachable, isVisited, isDestination, isCurrent);
+        region.SetInteractableState(isReachable, isVisited, isDestination, isCurrent, allowSelection);
       }
 
       RefreshVanMarker();
+    }
+
+    void RefreshRoadVisuals()
+    {
+      if (roadsController == null)
+        return;
+
+      roadsController.HideAllRoads();
+
+      if (_viewMode == MapViewMode.DestinationSelection)
+        return;
+
+      roadsController.ShowTraveledRoads(_runState);
+
+      if (_runState?.CurrentCity != null && _runState.DestinationCity != null)
+        roadsController.BlinkActiveLegRoad(_runState.CurrentCity, _runState.DestinationCity);
     }
 
     public void RefreshVanMarker()
@@ -156,6 +191,9 @@ namespace VanGame.UI
       int drivingDays = _runState.CurrentCity.GetDrivingDaysTo(city);
 
       tooltip.Show(city, drivingDays);
+
+      if (_viewMode == MapViewMode.DestinationSelection)
+        roadsController?.ShowHoverRoad(_runState.CurrentCity, city);
     }
 
     public void NotifyRegionUnhovered(MapRegionView region)
@@ -165,10 +203,14 @@ namespace VanGame.UI
 
       _hoveredRegion = null;
       tooltip?.Hide(immediate: false);
+      roadsController?.ClearHoverRoad();
     }
 
     public void NotifyRegionClicked(MapRegionView region)
     {
+      if (_viewMode != MapViewMode.DestinationSelection)
+        return;
+
       if (_flow == null || region?.City == null || _runState?.CurrentCity == null)
         return;
 
@@ -176,6 +218,7 @@ namespace VanGame.UI
       if (!BuildReachableSet().Contains(destination))
         return;
 
+      roadsController?.ClearHoverRoad();
       _flow.SelectDestination(region);
     }
   }

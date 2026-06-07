@@ -25,6 +25,7 @@ MonoBehaviour:
   parking: 1
   costOfLiving: 0
   funTheme: Camel riding
+  regionDescription: Southridge is a desert city with parks for free parking. It's featured for its camels. Despite being hot, it has a low living cost.
   baseMoraleDelta: 5
   stayDaysInCity: 1
   possibleEvents:

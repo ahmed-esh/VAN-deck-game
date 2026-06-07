@@ -24,6 +24,7 @@ MonoBehaviour:
   parking: 0
   costOfLiving: 0
   funTheme: Mountains
+  regionDescription: Fox Creek is a city with wetland parks. Parking is moderate and the prices there are low. However, it does provide challenges for driving.
   baseMoraleDelta: -15
   stayDaysInCity: 1
   possibleEvents: []

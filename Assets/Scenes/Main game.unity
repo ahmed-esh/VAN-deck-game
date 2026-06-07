@@ -666,7 +666,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -677,9 +677,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &46637847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3803,7 +3805,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -3814,9 +3816,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &596210711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4343,6 +4347,7 @@ GameObject:
   - component: {fileID: 693772263}
   - component: {fileID: 693772262}
   - component: {fileID: 693772261}
+  - component: {fileID: 693772272}
   - component: {fileID: 693772271}
   m_Layer: 0
   m_Name: GameManager
@@ -4376,6 +4381,7 @@ MonoBehaviour:
   - {fileID: 1771617097}
   tooltip: {fileID: 1897114320}
   vanMarker: {fileID: 2910000003}
+  roadsController: {fileID: 693772272}
   closeMapButton: {fileID: 1952652127}
 --- !u!114 &693772262
 MonoBehaviour:
@@ -4552,6 +4558,78 @@ MonoBehaviour:
   hoverFan: {fileID: 1044459567}
   statsHud: {fileID: 1325732669}
   timerView: {fileID: 31591156}
+--- !u!114 &693772272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 693772260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c3e1f42b8d4e6a9f0c2d5e8b1a4f73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRoadsController
+  connections:
+  - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+    cityB: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+    roadVisual: {fileID: 1894785092}
+  - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+    cityB: {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+    roadVisual: {fileID: 194444800}
+  - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+    cityB: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+    roadVisual: {fileID: 1161780517}
+  - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+    cityB: {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
+    roadVisual: {fileID: 804124088}
+  - cityA: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+    cityB: {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
+    roadVisual: {fileID: 839173494}
+  - cityA: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+    cityB: {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+    roadVisual: {fileID: 1416388712}
+  - cityA: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+    cityB: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    roadVisual: {fileID: 2040122980}
+  - cityA: {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+    cityB: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+    roadVisual: {fileID: 1912461220}
+  - cityA: {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
+    cityB: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    roadVisual: {fileID: 1446028640}
+  - cityA: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+    cityB: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    roadVisual: {fileID: 414558694}
+  - cityA: {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
+    cityB: {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+    roadVisual: {fileID: 1098992371}
+  - cityA: {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
+    cityB: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    roadVisual: {fileID: 1125329700}
+  - cityA: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    cityB: {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+    roadVisual: {fileID: 260321609}
+  - cityA: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    cityB: {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
+    roadVisual: {fileID: 274434026}
+  - cityA: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+    cityB: {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
+    roadVisual: {fileID: 1985907164}
+  - cityA: {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
+    cityB: {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
+    roadVisual: {fileID: 596216634}
+  - cityA: {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+    cityB: {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
+    roadVisual: {fileID: 210690676}
+  - cityA: {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+    cityB: {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
+    roadVisual: {fileID: 1003741572}
+  - cityA: {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
+    cityB: {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
+    roadVisual: {fileID: 1872836083}
+  activeLegBlinkDuration: 0.55
+  activeLegBlinkColor: {r: 1, g: 0.95, b: 0.55, a: 1}
 --- !u!1 &699806887
 GameObject:
   m_ObjectHideFlags: 0
@@ -4788,7 +4866,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -4799,9 +4877,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &714456647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6305,7 +6385,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -6316,9 +6396,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1077222076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6696,7 +6778,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -6707,9 +6789,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1107353684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6800,7 +6884,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -6811,9 +6895,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1117624704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9994,7 +10080,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -10005,9 +10091,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1748567011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10345,7 +10433,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: c58e5bb61fa1a4011860afc2bce11b7b, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -10356,9 +10444,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 1419856439}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1771617098
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10372,7 +10462,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.35}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11012,7 +11102,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -11023,9 +11113,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &1852718171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11600,6 +11692,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapStatsTooltipView
   canvasGroup: {fileID: 1897114321}
   cityNameText: {fileID: 1875498191}
+  descriptionText: {fileID: 1748950863}
   parkingText: {fileID: 1221607787}
   costOfLivingText: {fileID: 699806889}
   funThemeText: {fileID: 1748950863}
@@ -11608,7 +11701,9 @@ MonoBehaviour:
   drivingDaysText: {fileID: 1479749460}
   moralePositiveFormat: +{0} Morale
   moraleNegativeFormat: '{0} Morale'
-  drivingDaysFormat: '{0} days to drive'
+  stayDaysFormat: Your family will spend {0} days in {1}.
+  drivingDaysFormat: It will take you {0} days driving to get there from your current
+    location.
 --- !u!225 &1897114321
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -12411,7 +12506,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.UI.MapRegionView
   city: {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
   liftTarget: {fileID: 0}
-  hoverLiftY: 24
+  hoverLiftY: 2.4
   hoverDuration: 0.25
   hoverEase: 9
   tooltip: {fileID: 0}
@@ -12422,9 +12517,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
-  destinationTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
-  destinationBlinkDuration: 0.65
+  destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
+  destinationBlinkFlag: {fileID: 0}
+  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagBlinkDuration: 0.65
 --- !u!114 &2046717953
 MonoBehaviour:
   m_ObjectHideFlags: 0

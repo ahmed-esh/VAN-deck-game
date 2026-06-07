@@ -205,7 +205,9 @@ namespace VanGame
 
       drivingTurn?.OnLegEnded();
 
+      CityDefinition fromCity = _runState.CurrentCity;
       CityDefinition arrivedCity = _runState.DestinationCity;
+      _runState.RecordTraveledRoad(fromCity, arrivedCity);
       _runState.CurrentCity = arrivedCity;
       _runState.MarkCityVisited(arrivedCity);
       _runState.DestinationCity = null;

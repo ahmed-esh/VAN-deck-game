@@ -11,7 +11,7 @@ namespace VanGame.UI
   {
     [SerializeField] CityDefinition city;
     [SerializeField] RectTransform liftTarget;
-    [SerializeField] float hoverLiftY = 24f;
+    [SerializeField] float hoverLiftY = 2.4f;
     [SerializeField] float hoverDuration = 0.25f;
     [SerializeField] Ease hoverEase = Ease.OutCubic;
     [SerializeField] MapStatsTooltipView tooltip;
@@ -26,9 +26,11 @@ namespace VanGame.UI
     [SerializeField] float currentBlinkDuration = 0.55f;
 
     [Header("Final destination")]
-    [SerializeField] Color destinationTint = new Color(1f, 0.72f, 0.72f, 1f);
-    [SerializeField] Color destinationBlinkTint = new Color(1f, 0.35f, 0.35f, 1f);
-    [SerializeField] float destinationBlinkDuration = 0.65f;
+    [SerializeField] Color destinationBaseTint = Color.white;
+    [SerializeField] Image destinationBlinkFlag;
+    [SerializeField] Color destinationFlagTint = new Color(1f, 0.72f, 0.72f, 1f);
+    [SerializeField] Color destinationFlagBlinkTint = new Color(1f, 0.35f, 0.35f, 1f);
+    [SerializeField] float destinationFlagBlinkDuration = 0.65f;
 
     Image _image;
     MapController _mapController;
@@ -37,6 +39,7 @@ namespace VanGame.UI
     bool _isReachable;
     bool _isVisited;
     Tweener _regionBlinkTween;
+    Tweener _flagBlinkTween;
 
     public CityDefinition City => city;
     public RectTransform LiftTarget => liftTarget != null ? liftTarget : (RectTransform)transform;
@@ -52,6 +55,9 @@ namespace VanGame.UI
 
       if (highlightImage != null)
         highlightImage.enabled = false;
+
+      if (destinationBlinkFlag != null)
+        destinationBlinkFlag.enabled = false;
     }
 
     public void Initialize(MapController controller)
@@ -59,9 +65,14 @@ namespace VanGame.UI
       _mapController = controller;
     }
 
-    public void SetInteractableState(bool reachable, bool visited, bool isDestination, bool isCurrent)
+    public void SetInteractableState(
+      bool reachable,
+      bool visited,
+      bool isDestination,
+      bool isCurrent,
+      bool allowSelection)
     {
-      _isReachable = reachable && !visited && !isCurrent;
+      _isReachable = allowSelection && reachable && !visited && !isCurrent;
       _isVisited = visited;
 
       StopRegionBlink();
@@ -73,29 +84,41 @@ namespace VanGame.UI
 
       if (isCurrent)
       {
-        StartRegionBlink(currentTint, currentBlinkTint, currentBlinkDuration);
+        StartRegionBlink(_image, currentTint, currentBlinkTint, currentBlinkDuration);
         return;
       }
 
       if (isDestination)
       {
-        StartRegionBlink(destinationTint, destinationBlinkTint, destinationBlinkDuration);
+        _image.color = destinationBaseTint;
+
+        if (destinationBlinkFlag != null)
+        {
+          destinationBlinkFlag.enabled = true;
+          StartRegionBlink(destinationBlinkFlag, destinationFlagTint, destinationFlagBlinkTint, destinationFlagBlinkDuration);
+        }
+
         return;
       }
 
       _image.color = visited ? visitedTint : reachable ? reachableTint : unreachableTint;
     }
 
-    void StartRegionBlink(Color baseTint, Color blinkTint, float duration)
+    void StartRegionBlink(Image target, Color baseTint, Color blinkTint, float duration)
     {
-      if (_image == null)
+      if (target == null)
         return;
 
-      _image.color = baseTint;
-      _regionBlinkTween = _image
+      target.color = baseTint;
+      Tweener tween = target
         .DOColor(blinkTint, duration)
         .SetEase(Ease.InOutSine)
         .SetLoops(-1, LoopType.Yoyo);
+
+      if (target == _image)
+        _regionBlinkTween = tween;
+      else
+        _flagBlinkTween = tween;
     }
 
     void StopRegionBlink()
@@ -106,8 +129,17 @@ namespace VanGame.UI
         _regionBlinkTween = null;
       }
 
+      if (_flagBlinkTween != null)
+      {
+        _flagBlinkTween.Kill();
+        _flagBlinkTween = null;
+      }
+
       if (_image != null)
         _image.DOKill();
+
+      if (destinationBlinkFlag != null)
+        destinationBlinkFlag.DOKill();
     }
 
     public void OnPointerEnter(PointerEventData eventData)

@@ -24,6 +24,7 @@ MonoBehaviour:
   parking: 0
   costOfLiving: 0
   funTheme: Minning
+  regionDescription: Louisville is a mining city with a memorable history. Recently an old mine site opened as a museum. Parking is easy and it's low-cost.
   baseMoraleDelta: -50
   stayDaysInCity: 2
   possibleEvents: []
