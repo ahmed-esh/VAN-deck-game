@@ -460,6 +460,9 @@ namespace VanGame.Core
       if (_runState.FuelPercent <= 0f)
         return "You ran out of fuel.";
 
+      if (_runState.Money <= 0)
+        return "You ran out of money.";
+
       if (_runState.MoralePercent <= 0f)
         return "Family morale collapsed.";
 
@@ -476,6 +479,9 @@ namespace VanGame.Core
     {
       if (_runState == null || gameConfig == null)
         return false;
+
+      if (_runState.Money <= 0)
+        return true;
 
       if (_runState.FuelPercent <= 0f)
         return true;

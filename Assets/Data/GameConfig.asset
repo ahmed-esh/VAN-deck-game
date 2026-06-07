@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30abe75af18374fe59d837b1f1365728, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.GameConfig
-  startingMoney: 500
+  startingMoney: 40
   startingFuelPercent: 100
   startingMoralePercent: 100
   startingVanConditionPercent: 100
@@ -25,6 +25,7 @@ MonoBehaviour:
   dietErUnfedMoralePenaltyPercent: 25
   parallaxCardPlaySpeedBoost: 3
   parallaxSpeedDecayPerSecond: 1.5
+  cardAnimationDurationScale: 1.25
   cardPlayMoveToCenterDuration: 0.4
   cardPlayCenterHoldDuration: 0.12
   cardPlayVanishDuration: 0.45
@@ -35,6 +36,19 @@ MonoBehaviour:
   cardDrawStartScale: 1
   cardPlayEase: 26
   cardDrawEase: 27
+  cardDealDuration: 0.56
+  cardDealStagger: 0.088
+  cardDealStartOffset: {x: 420, y: 320}
+  cardDealStartRotation: 35
+  cardDealStartScale: 0.25
+  cardDealEase: 9
+  cardDrawFromLeftDuration: 0.85
+  cardDrawFromLeftOffset: 320
+  cardDrawFromLeftStartScale: 0.55
+  cardDrawFromLeftEase: 9
+  cardInspectScale: 2.1
+  cardInspectDuration: 0.44
+  cardInspectEase: 27
   canvasTransitionDuration: 0.4
   canvasTransitionEase: 9
   mapOpenFadeDuration: 0.35

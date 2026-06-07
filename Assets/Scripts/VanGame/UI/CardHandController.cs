@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using VanGame.Audio;
 using VanGame.Core;
 using VanGame.Data;
 
@@ -520,6 +521,7 @@ namespace VanGame.UI
 
       view.Clicked -= OnCardClicked;
       view.SetPlaying(true);
+      TriggerCardPlayEffects(view);
       _pendingDrawSlot = view.HandSlot;
       _cardViews.Remove(view);
       hoverFan?.SetAwaitingDrawnCard(true);
@@ -595,6 +597,16 @@ namespace VanGame.UI
         view.gameObject.SetActive(false);
         Destroy(view.gameObject);
       }
+    }
+
+    static void TriggerCardPlayEffects(CardView view)
+    {
+      if (view == null)
+        return;
+
+      CardPlayAudioEffect[] audioEffects = view.GetComponents<CardPlayAudioEffect>();
+      foreach (CardPlayAudioEffect effect in audioEffects)
+        effect.PlayOnCardPlayed();
     }
 
     RectTransform GetPlayAnimationRoot()

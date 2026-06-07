@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using VanGame.Audio;
 using VanGame.Core;
 using VanGame.Data;
 using VanGame.UI;
@@ -32,8 +33,11 @@ namespace VanGame
     [Header("Phase panels")]
     [SerializeField] GameObject drivingPanel;
     [SerializeField] GameObject cityArrivalPanel;
-    [SerializeField] WinLoseView winView;
-    [SerializeField] WinLoseView loseView;
+    [SerializeField] WinScrollPanelView winScrollPanel;
+    [SerializeField] LoseScrollPanelView loseScrollPanel;
+
+    [Header("Audio")]
+    [SerializeField] RegionalMusicController regionalMusic;
 
     readonly RunState _runState = new RunState();
 
@@ -82,8 +86,8 @@ namespace VanGame
       statsHud?.Bind(_runState, gameConfig);
       randomEventResolver?.Configure(gameConfig);
       cityArrival?.Initialize(_runState, gameConfig, statResolver, randomEventResolver);
-      winView?.Initialize(this, statResolver, gameConfig);
-      loseView?.Initialize(this, statResolver, gameConfig);
+      winScrollPanel?.Initialize(this, statResolver, gameConfig);
+      loseScrollPanel?.Initialize(this, statResolver, gameConfig);
     }
 
     public void StartNewRun()
@@ -98,9 +102,11 @@ namespace VanGame
 
       SetPanel(drivingPanel, true);
       SetPanel(cityArrivalPanel, false);
-      winView?.Hide(immediate: true);
-      loseView?.Hide(immediate: true);
+      winScrollPanel?.Hide(immediate: true);
+      loseScrollPanel?.Hide(immediate: true);
       SetOpenMapButtonVisible(true);
+
+      regionalMusic?.OnRunStarted(_runState.CurrentCity);
 
       _runState.SetPhase(GamePhase.CardIdle);
 
@@ -174,6 +180,8 @@ namespace VanGame
       _runState.HasPickedFirstDestination = true;
       _runState.NotifyDestinationSelected(destination);
 
+      regionalMusic?.PlayRegionMusic(destination);
+
       canvasTransition?.ConfirmCitySelection(region, BeginDrivingLeg);
     }
 
@@ -233,10 +241,12 @@ namespace VanGame
     void EnterWin()
     {
       _runState.SetPhase(GamePhase.Win);
+      regionalMusic?.PlayWin();
       SetPanel(drivingPanel, false);
       SetPanel(cityArrivalPanel, false);
       SetOpenMapButtonVisible(false);
-      winView?.ShowWin(_runState);
+
+      winScrollPanel?.ShowWin(_runState);
     }
 
     public void EnterLoseFromDriving()
@@ -248,10 +258,11 @@ namespace VanGame
     void EnterLose()
     {
       _runState.SetPhase(GamePhase.Lose);
+      regionalMusic?.PlayLose();
       SetPanel(drivingPanel, false);
       SetPanel(cityArrivalPanel, false);
       SetOpenMapButtonVisible(false);
-      loseView?.ShowLose(_runState);
+      loseScrollPanel?.ShowLose(_runState);
     }
 
     void SetOpenMapButtonVisible(bool visible)
