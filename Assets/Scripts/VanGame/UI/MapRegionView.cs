@@ -6,6 +6,12 @@ using VanGame.Data;
 
 namespace VanGame.UI
 {
+  public enum MapRegionHighlightMode
+  {
+    DestinationPick,
+    DrivingOverview
+  }
+
   [RequireComponent(typeof(Image))]
   public class MapRegionView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
   {
@@ -25,7 +31,10 @@ namespace VanGame.UI
     [SerializeField] Color currentBlinkTint = new Color(1f, 0.95f, 0.55f, 1f);
     [SerializeField] float currentBlinkDuration = 0.55f;
 
-    [Header("Final destination")]
+    [Header("Leg destination (driving overview)")]
+    [SerializeField] Color legDestinationTint = Color.white;
+
+    [Header("Final destination (City B win target)")]
     [SerializeField] Color destinationBaseTint = Color.white;
     [SerializeField] Image destinationBlinkFlag;
     [SerializeField] Color destinationFlagTint = new Color(1f, 0.72f, 0.72f, 1f);
@@ -68,19 +77,28 @@ namespace VanGame.UI
     public void SetInteractableState(
       bool reachable,
       bool visited,
-      bool isDestination,
+      bool isFinalDestination,
+      bool isLegDestination,
       bool isCurrent,
-      bool allowSelection)
+      bool allowSelection,
+      MapRegionHighlightMode highlightMode)
     {
       _isReachable = allowSelection && reachable && !visited && !isCurrent;
       _isVisited = visited;
 
       StopRegionBlink();
+      SetFinalDestinationFlag(isFinalDestination);
 
       if (_image == null)
         return;
 
       _image.raycastTarget = _isReachable;
+
+      if (highlightMode == MapRegionHighlightMode.DrivingOverview)
+      {
+        ApplyDrivingOverviewVisuals(visited, isLegDestination, isCurrent, isFinalDestination);
+        return;
+      }
 
       if (isCurrent)
       {
@@ -88,20 +106,68 @@ namespace VanGame.UI
         return;
       }
 
-      if (isDestination)
+      if (isFinalDestination)
       {
         _image.color = destinationBaseTint;
-
-        if (destinationBlinkFlag != null)
-        {
-          destinationBlinkFlag.enabled = true;
-          StartRegionBlink(destinationBlinkFlag, destinationFlagTint, destinationFlagBlinkTint, destinationFlagBlinkDuration);
-        }
-
         return;
       }
 
       _image.color = visited ? visitedTint : reachable ? reachableTint : unreachableTint;
+    }
+
+    void ApplyDrivingOverviewVisuals(
+      bool visited,
+      bool isLegDestination,
+      bool isCurrent,
+      bool isFinalDestination)
+    {
+      if (isCurrent)
+      {
+        _image.color = currentTint;
+        return;
+      }
+
+      if (isLegDestination)
+      {
+        _image.color = legDestinationTint;
+        return;
+      }
+
+      if (isFinalDestination)
+      {
+        _image.color = destinationBaseTint;
+        return;
+      }
+
+      if (visited)
+      {
+        _image.color = visitedTint;
+        return;
+      }
+
+      _image.color = unreachableTint;
+    }
+
+    void SetFinalDestinationFlag(bool show)
+    {
+      if (destinationBlinkFlag == null)
+        return;
+
+      if (!show)
+      {
+        destinationBlinkFlag.DOKill();
+        destinationBlinkFlag.enabled = false;
+        destinationBlinkFlag.gameObject.SetActive(false);
+        return;
+      }
+
+      destinationBlinkFlag.gameObject.SetActive(true);
+      destinationBlinkFlag.enabled = true;
+      StartRegionBlink(
+        destinationBlinkFlag,
+        destinationFlagTint,
+        destinationFlagBlinkTint,
+        destinationFlagBlinkDuration);
     }
 
     void StartRegionBlink(Image target, Color baseTint, Color blinkTint, float duration)
@@ -190,6 +256,11 @@ namespace VanGame.UI
       _isLifted = false;
       LiftTarget.DOKill();
       LiftTarget.DOAnchorPosY(_restAnchoredPosition.y, hoverDuration).SetEase(hoverEase);
+    }
+
+    void OnEnable()
+    {
+      _mapController?.RequestMapVisualRefresh();
     }
 
     void OnDisable()

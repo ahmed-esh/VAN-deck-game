@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 using VanGame.Core;
@@ -27,6 +28,7 @@ namespace VanGame.UI
     bool _isTransitioning;
 
     public bool IsTransitioning => _isTransitioning;
+    public event Action MapBecameVisible;
 
     void Awake()
     {
@@ -147,6 +149,10 @@ namespace VanGame.UI
         cardGroup.alpha = visible ? 0f : 1f;
         cardGroup.interactable = !visible;
         cardGroup.blocksRaycasts = !visible;
+
+        if (visible)
+          MapBecameVisible?.Invoke();
+
         return;
       }
 
@@ -168,6 +174,7 @@ namespace VanGame.UI
           cardGroup.interactable = false;
           cardGroup.blocksRaycasts = false;
           _isTransitioning = false;
+          MapBecameVisible?.Invoke();
         });
       }
       else

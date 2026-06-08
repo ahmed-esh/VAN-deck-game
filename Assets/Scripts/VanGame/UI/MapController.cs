@@ -20,6 +20,7 @@ namespace VanGame.UI
     [SerializeField] MapRoadsController roadsController;
     [SerializeField] GameObject closeMapButton;
 
+    CanvasTransitionController _canvasTransition;
     RunState _runState;
     GameFlowController _flow;
     MapRegionView _hoveredRegion;
@@ -30,6 +31,19 @@ namespace VanGame.UI
     public void Initialize(GameFlowController flow, RunState runState)
     {
       _flow = flow;
+
+      if (_canvasTransition != null)
+        _canvasTransition.MapBecameVisible -= OnMapBecameVisible;
+
+      _canvasTransition = flow != null
+        ? flow.GetComponent<CanvasTransitionController>()
+        : null;
+
+      if (_canvasTransition == null)
+        _canvasTransition = FindFirstObjectByType<CanvasTransitionController>();
+
+      if (_canvasTransition != null)
+        _canvasTransition.MapBecameVisible += OnMapBecameVisible;
 
       if (_runState != null)
         _runState.PhaseChanged -= OnRunStateChanged;
@@ -52,6 +66,27 @@ namespace VanGame.UI
     {
       if (_runState != null)
         _runState.PhaseChanged -= OnRunStateChanged;
+
+      if (_canvasTransition != null)
+        _canvasTransition.MapBecameVisible -= OnMapBecameVisible;
+    }
+
+    void OnMapBecameVisible()
+    {
+      RefreshMapVisuals();
+    }
+
+    public void RefreshMapVisuals()
+    {
+      RefreshRegionStates();
+      RefreshRoadVisuals();
+    }
+
+    public void RequestMapVisualRefresh()
+    {
+      if (_viewMode == MapViewMode.DrivingOverview || _runState?.Phase == GamePhase.MapOpen
+        || _runState?.Phase == GamePhase.MapSelectingDestination)
+        RefreshMapVisuals();
     }
 
     void OnRunStateChanged()
@@ -68,8 +103,7 @@ namespace VanGame.UI
         ? MapViewMode.DestinationSelection
         : MapViewMode.DrivingOverview;
 
-      RefreshRegionStates();
-      RefreshRoadVisuals();
+      RefreshMapVisuals();
 
       if (closeMapButton != null)
         closeMapButton.SetActive(!forceDestinationPick);
@@ -85,6 +119,10 @@ namespace VanGame.UI
       HashSet<CityDefinition> reachable = BuildReachableSet();
       bool allowSelection = _viewMode == MapViewMode.DestinationSelection;
 
+      MapRegionHighlightMode highlightMode = _viewMode == MapViewMode.DrivingOverview
+        ? MapRegionHighlightMode.DrivingOverview
+        : MapRegionHighlightMode.DestinationPick;
+
       foreach (MapRegionView region in mapRegions)
       {
         if (region?.City == null)
@@ -94,9 +132,33 @@ namespace VanGame.UI
         bool isCurrent = city == _runState.CurrentCity;
         bool isVisited = _runState.IsCityVisited(city) && !isCurrent;
         bool isReachable = reachable.Contains(city);
-        bool isDestination = _runState.DestinationCityAsset != null && city == _runState.DestinationCityAsset;
+        bool isFinalDestination = _runState.DestinationCityAsset != null && city == _runState.DestinationCityAsset;
+        bool isLegDestination = _viewMode == MapViewMode.DrivingOverview
+          && _runState.DestinationCity != null
+          && city == _runState.DestinationCity;
+        bool isVisibleOnOverview = isVisited || isCurrent || isLegDestination || isFinalDestination;
 
-        region.SetInteractableState(isReachable, isVisited, isDestination, isCurrent, allowSelection);
+        if (_viewMode == MapViewMode.DrivingOverview && !isVisibleOnOverview)
+        {
+          region.SetInteractableState(
+            reachable: false,
+            visited: false,
+            isFinalDestination: false,
+            isLegDestination: false,
+            isCurrent: false,
+            allowSelection: false,
+            highlightMode);
+          continue;
+        }
+
+        region.SetInteractableState(
+          isReachable,
+          isVisited,
+          isFinalDestination,
+          isLegDestination,
+          isCurrent,
+          allowSelection,
+          highlightMode);
       }
 
       RefreshVanMarker();

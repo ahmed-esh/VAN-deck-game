@@ -23,6 +23,7 @@ namespace VanGame.UI
     [SerializeField] Color activeLegBlinkColor = new Color(1f, 0.95f, 0.55f, 1f);
 
     readonly Dictionary<GameObject, Image> _roadImages = new Dictionary<GameObject, Image>();
+    readonly Dictionary<GameObject, Color> _roadBaseColors = new Dictionary<GameObject, Color>();
     Connection? _hoverConnection;
     Connection? _blinkingConnection;
     Tweener _blinkTween;
@@ -36,6 +37,7 @@ namespace VanGame.UI
     void CacheRoadImages()
     {
       _roadImages.Clear();
+      _roadBaseColors.Clear();
 
       foreach (Connection connection in connections)
       {
@@ -43,8 +45,14 @@ namespace VanGame.UI
           continue;
 
         Image image = connection.roadVisual.GetComponent<Image>();
-        if (image != null)
-          _roadImages[connection.roadVisual] = image;
+        if (image == null)
+          image = connection.roadVisual.GetComponentInChildren<Image>(true);
+
+        if (image == null)
+          continue;
+
+        _roadImages[connection.roadVisual] = image;
+        _roadBaseColors[connection.roadVisual] = image.color;
       }
     }
 
@@ -119,17 +127,19 @@ namespace VanGame.UI
       if (connection.roadVisual != null)
         connection.roadVisual.SetActive(true);
 
-      if (!_roadImages.TryGetValue(connection.roadVisual, out Image image) || image == null)
+      if (!TryGetRoadImage(connection.roadVisual, out Image image))
         return;
 
-      Color baseColor = image.color;
+      Color baseColor = GetRoadBaseColor(connection.roadVisual, image);
       baseColor.a = 1f;
       image.color = baseColor;
 
       _blinkTween = image
         .DOColor(activeLegBlinkColor, activeLegBlinkDuration)
         .SetEase(Ease.InOutSine)
-        .SetLoops(-1, LoopType.Yoyo);
+        .SetLoops(-1, LoopType.Yoyo)
+        .SetUpdate(true)
+        .SetLink(connection.roadVisual);
     }
 
     void StopActiveLegBlink()
@@ -142,13 +152,44 @@ namespace VanGame.UI
 
       if (_blinkingConnection.HasValue
         && _blinkingConnection.Value.roadVisual != null
-        && _roadImages.TryGetValue(_blinkingConnection.Value.roadVisual, out Image image)
-        && image != null)
+        && TryGetRoadImage(_blinkingConnection.Value.roadVisual, out Image image))
       {
         image.DOKill();
+        image.color = GetRoadBaseColor(_blinkingConnection.Value.roadVisual, image);
       }
 
       _blinkingConnection = null;
+    }
+
+    bool TryGetRoadImage(GameObject roadVisual, out Image image)
+    {
+      image = null;
+      if (roadVisual == null)
+        return false;
+
+      if (_roadImages.TryGetValue(roadVisual, out image) && image != null)
+        return true;
+
+      image = roadVisual.GetComponent<Image>();
+      if (image == null)
+        image = roadVisual.GetComponentInChildren<Image>(true);
+
+      if (image == null)
+        return false;
+
+      _roadImages[roadVisual] = image;
+      if (!_roadBaseColors.ContainsKey(roadVisual))
+        _roadBaseColors[roadVisual] = image.color;
+
+      return true;
+    }
+
+    Color GetRoadBaseColor(GameObject roadVisual, Image image)
+    {
+      if (roadVisual != null && _roadBaseColors.TryGetValue(roadVisual, out Color cached))
+        return cached;
+
+      return image != null ? image.color : Color.white;
     }
 
     bool TryFindConnection(CityDefinition a, CityDefinition b, out Connection connection)

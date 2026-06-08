@@ -478,6 +478,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -935,6 +936,7 @@ RectTransform:
   - {fileID: 1985907165}
   - {fileID: 1446028641}
   - {fileID: 1912461221}
+  - {fileID: 2910000001}
   m_Father: {fileID: 179482271}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -4589,6 +4591,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -5948,7 +5951,6 @@ RectTransform:
   - {fileID: 1748567009}
   - {fileID: 1077222074}
   - {fileID: 1771617096}
-  - {fileID: 2910000001}
   - {fileID: 1419856438}
   m_Father: {fileID: 179482271}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6020,6 +6022,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -8093,7 +8096,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!225 &1010857726
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -8511,6 +8514,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -8904,6 +8908,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -9010,6 +9015,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -13500,6 +13506,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -13853,10 +13860,11 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 1419856439}
-  destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
-  destinationFlagBlinkTint: {r: 1, g: 0.35, b: 0.35, a: 1}
+  destinationFlagTint: {r: 1, g: 0.94332755, b: 0.72156864, a: 1}
+  destinationFlagBlinkTint: {r: 1, g: 0.8990039, b: 0.11792451, a: 1}
   destinationFlagBlinkDuration: 0.65
 --- !u!114 &1771617098
 MonoBehaviour:
@@ -14425,7 +14433,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!225 &1840791108
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -14673,6 +14681,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -16659,6 +16668,7 @@ MonoBehaviour:
   currentTint: {r: 1, g: 1, b: 1, a: 1}
   currentBlinkTint: {r: 1, g: 0.95, b: 0.55, a: 1}
   currentBlinkDuration: 0.55
+  legDestinationTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBaseTint: {r: 1, g: 1, b: 1, a: 1}
   destinationBlinkFlag: {fileID: 0}
   destinationFlagTint: {r: 1, g: 0.72, b: 0.72, a: 1}
@@ -17430,12 +17440,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2910000000}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 708904402}
+  m_Father: {fileID: 96415760}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
