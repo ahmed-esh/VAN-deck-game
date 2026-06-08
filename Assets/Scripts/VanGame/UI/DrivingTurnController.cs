@@ -183,7 +183,6 @@ namespace VanGame.UI
             cardHand?.ClearAwaitingDrawnCard();
 
           cardHand?.SetHandRebuildSuspended(false);
-          cardHand?.RefreshAffordability();
 
           if (CheckLoseAfterAction())
             return;
@@ -196,6 +195,7 @@ namespace VanGame.UI
         finally
         {
           _isResolvingCardPlay = false;
+          cardHand?.RefreshAffordability();
         }
       });
     }
