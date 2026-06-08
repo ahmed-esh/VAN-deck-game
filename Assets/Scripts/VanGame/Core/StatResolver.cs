@@ -471,30 +471,55 @@ namespace VanGame.Core
       }
     }
 
-    public string GetLoseReason(DeckController deck = null)
+    public LoseReason GetLoseReasonType(DeckController deck = null)
     {
       if (_runState == null || gameConfig == null)
-        return "You ran out of resources.";
-
-      if (_runState.FuelPercent <= 0f)
-        return "You ran out of fuel.";
-
-      if (deck != null && IsStuckWithUnaffordableHand(deck))
-        return "You couldn't afford any cards in your hand.";
+        return LoseReason.None;
 
       if (_runState.Money <= 0)
-        return "You ran out of money.";
+        return LoseReason.Money;
+
+      if (_runState.FuelPercent <= 0f)
+        return LoseReason.Fuel;
 
       if (_runState.MoralePercent <= 0f)
-        return "Family morale collapsed.";
+        return LoseReason.Morale;
 
       if (_runState.VanConditionPercent <= 0f)
-        return "The van broke down.";
+        return LoseReason.VanCondition;
 
       if (_runState.TripDayCurrent > gameConfig.maxTripDays)
-        return "You ran out of time.";
+        return LoseReason.TripDays;
 
-      return "The trip ended.";
+      if (deck != null && IsStuckWithUnaffordableHand(deck))
+        return LoseReason.UnaffordableHand;
+
+      return LoseReason.None;
+    }
+
+    public string GetLoseFlavorMessage(DeckController deck = null)
+    {
+      switch (GetLoseReasonType(deck))
+      {
+        case LoseReason.Money:
+        case LoseReason.UnaffordableHand:
+          return "You lost all your money!!";
+        case LoseReason.Fuel:
+          return "You forgot to fill up on fuel!!";
+        case LoseReason.VanCondition:
+          return "The family van broke down!!";
+        case LoseReason.Morale:
+          return "The family is having a miserable time, go back!!";
+        case LoseReason.TripDays:
+          return "You ran out of vacation days!!!";
+        default:
+          return "The trip ended.";
+      }
+    }
+
+    public string GetLoseReason(DeckController deck = null)
+    {
+      return GetLoseFlavorMessage(deck);
     }
 
     public bool CheckLoseConditions(DeckController deck = null)

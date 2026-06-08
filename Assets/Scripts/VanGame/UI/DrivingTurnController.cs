@@ -21,9 +21,13 @@ namespace VanGame.UI
 
     bool _isLegActive;
     bool _isEndingDay;
+    bool _isResolvingCardPlay;
 
     public bool CanPlayCards => _isLegActive && gameFlow != null
-      && gameFlow.RunState.Phase == GamePhase.Driving;
+      && gameFlow.RunState.Phase == GamePhase.Driving
+      && !_isResolvingCardPlay;
+
+    public bool IsResolvingCardPlay => _isResolvingCardPlay;
 
     void Awake()
     {
@@ -119,16 +123,23 @@ namespace VanGame.UI
     public void OnLegEnded()
     {
       _isLegActive = false;
+      _isResolvingCardPlay = false;
       cardHand?.ClearHandVisuals();
       cardHand?.SetHandInteractable(false);
     }
 
     public void TryPlayCard(CardView view)
     {
-      if (!CanPlayCards || view?.Definition == null || statResolver == null || deckController == null)
+      if (_isResolvingCardPlay || view?.Definition == null || statResolver == null || deckController == null)
+        return;
+
+      if (!_isLegActive || gameFlow == null || gameFlow.RunState.Phase != GamePhase.Driving)
         return;
 
       ActionCardDefinition card = view.Definition;
+
+      if (view.IsPlaying || cardHand != null && cardHand.IsCardPlayInProgress)
+        return;
 
       if (!deckController.IsCardLegalInCurrentRegion(card))
         return;
@@ -136,6 +147,8 @@ namespace VanGame.UI
       if (!statResolver.CanAfford(deckController.GetCardMoneyCost(card)))
         return;
 
+      _isResolvingCardPlay = true;
+      cardHand?.SetHandInteractable(false);
       PlayCard(view, card);
     }
 
@@ -162,21 +175,28 @@ namespace VanGame.UI
 
       cardHand?.AnimateCardPlay(view, () =>
       {
-        if (deckController != null && deckController.TryPlayCard(card, out _))
-          cardHand?.AddDrawnCardToSlot(cardHand.ConsumePendingDrawSlot());
-        else
-          cardHand?.ClearAwaitingDrawnCard();
+        try
+        {
+          if (deckController != null && deckController.TryPlayCard(card, out _))
+            cardHand?.AddDrawnCardToSlot(cardHand.ConsumePendingDrawSlot());
+          else
+            cardHand?.ClearAwaitingDrawnCard();
 
-        cardHand?.SetHandRebuildSuspended(false);
-        cardHand?.RefreshAffordability();
+          cardHand?.SetHandRebuildSuspended(false);
+          cardHand?.RefreshAffordability();
 
-        if (CheckLoseAfterAction())
-          return;
+          if (CheckLoseAfterAction())
+            return;
 
-        if (ShouldEndDrivingDay())
-          EndDrivingDay();
+          if (ShouldEndDrivingDay())
+            EndDrivingDay();
 
-        timerView?.RefreshHeaderOnly();
+          timerView?.RefreshHeaderOnly();
+        }
+        finally
+        {
+          _isResolvingCardPlay = false;
+        }
       });
     }
 

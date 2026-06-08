@@ -17,6 +17,7 @@ namespace VanGame.UI
     readonly List<CardView> _cardViews = new List<CardView>();
 
     bool _handRebuildSuspended;
+    bool _cardPlayInProgress;
     CardView _inspectedCard;
     InspectState _inspectState;
     DeckController _deck;
@@ -35,6 +36,7 @@ namespace VanGame.UI
 
     public IReadOnlyList<CardView> CardViews => _cardViews;
     public bool IsInspectingCard => _inspectedCard != null;
+    public bool IsCardPlayInProgress => _cardPlayInProgress;
 
     public void Initialize(
       DeckController deck,
@@ -513,11 +515,17 @@ namespace VanGame.UI
     {
       CloseInspectImmediate();
 
+      if (_cardPlayInProgress)
+        return;
+
       if (view == null)
       {
         onComplete?.Invoke();
         return;
       }
+
+      _cardPlayInProgress = true;
+      SetHandInteractable(false);
 
       view.Clicked -= OnCardClicked;
       view.SetPlaying(true);
@@ -531,7 +539,7 @@ namespace VanGame.UI
       {
         hoverFan?.SetAwaitingDrawnCard(false);
         DestroyPlayingCardView(view);
-        onComplete?.Invoke();
+        FinishCardPlayAnimation(onComplete);
         hoverFan?.RefreshFromChildren();
         return;
       }
@@ -580,6 +588,12 @@ namespace VanGame.UI
       if (view != null)
         DestroyPlayingCardView(view);
 
+      FinishCardPlayAnimation(onComplete);
+    }
+
+    void FinishCardPlayAnimation(System.Action onComplete)
+    {
+      _cardPlayInProgress = false;
       onComplete?.Invoke();
     }
 
@@ -626,7 +640,13 @@ namespace VanGame.UI
 
     void OnCardClicked(CardView view)
     {
-      if (_inspectedCard != null)
+      if (_inspectedCard != null || _cardPlayInProgress)
+        return;
+
+      if (view == null || view.IsPlaying)
+        return;
+
+      if (_drivingTurn != null && _drivingTurn.IsResolvingCardPlay)
         return;
 
       GameSfxController.TryPlayCardClick();
@@ -635,6 +655,7 @@ namespace VanGame.UI
 
     public void ClearHandVisuals()
     {
+      _cardPlayInProgress = false;
       CloseInspectImmediate();
       ClearHandViews();
     }

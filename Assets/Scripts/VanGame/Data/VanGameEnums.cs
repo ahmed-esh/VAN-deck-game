@@ -51,6 +51,17 @@ namespace VanGame.Data
         Lose
     }
 
+    public enum LoseReason
+    {
+        None,
+        Money,
+        Fuel,
+        Morale,
+        VanCondition,
+        TripDays,
+        UnaffordableHand
+    }
+
     public enum ModifierTarget
     {
         MoneyCost,

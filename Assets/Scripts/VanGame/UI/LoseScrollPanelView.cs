@@ -19,6 +19,9 @@ namespace VanGame.UI
     [SerializeField] ScrollRect scrollRect;
     [SerializeField] RectTransform scrollContent;
 
+    [Header("Lose reason")]
+    [SerializeField] TMP_Text loseReasonText;
+
     [Header("Stats")]
     [SerializeField] TMP_Text dayText;
     [SerializeField] TMP_Text moneyText;
@@ -47,9 +50,17 @@ namespace VanGame.UI
     Tween _autoScrollTween;
     bool _autoScrolling;
     Coroutine _showRoutine;
+    StatResolver _statResolver;
+    DeckController _deck;
 
-    public void Initialize(GameFlowController flow, StatResolver statResolver, GameConfig config)
+    public void Initialize(
+      GameFlowController flow,
+      StatResolver statResolver,
+      DeckController deck,
+      GameConfig config)
     {
+      _statResolver = statResolver;
+      _deck = deck;
       ResolveScrollReferences();
 
       if (restartButton != null)
@@ -81,6 +92,7 @@ namespace VanGame.UI
         StopCoroutine(_showRoutine);
 
       PopulateStats(runState);
+      PopulateLoseReason();
       gameObject.SetActive(true);
       PrepareFadeIn();
       _showRoutine = StartCoroutine(ShowRoutine());
@@ -144,6 +156,14 @@ namespace VanGame.UI
       canvasGroup.alpha = 0f;
       canvasGroup.interactable = true;
       canvasGroup.blocksRaycasts = true;
+    }
+
+    void PopulateLoseReason()
+    {
+      if (loseReasonText == null || _statResolver == null)
+        return;
+
+      loseReasonText.text = _statResolver.GetLoseFlavorMessage(_deck);
     }
 
     void PopulateStats(RunState runState)

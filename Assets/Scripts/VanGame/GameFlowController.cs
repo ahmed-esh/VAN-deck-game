@@ -106,7 +106,37 @@ namespace VanGame
       deckController?.ConfigureSouvenirRewards(souvenirRewards);
       souvenirsInVan?.Initialize(_runState);
       winScrollPanel?.Initialize(this, statResolver, gameConfig);
-      loseScrollPanel?.Initialize(this, statResolver, gameConfig);
+      loseScrollPanel?.Initialize(this, statResolver, deckController, gameConfig);
+
+      if (_runState != null)
+        _runState.StatsChanged -= OnRunStatsChanged;
+
+      _runState.StatsChanged += OnRunStatsChanged;
+    }
+
+    void OnDestroy()
+    {
+      if (_runState != null)
+        _runState.StatsChanged -= OnRunStatsChanged;
+    }
+
+    void OnRunStatsChanged()
+    {
+      TryEnterLoseIfNeeded();
+    }
+
+    void TryEnterLoseIfNeeded()
+    {
+      if (_runState.Phase == GamePhase.Win || _runState.Phase == GamePhase.Lose)
+        return;
+
+      if (statResolver == null || !statResolver.CheckLoseConditions(deckController))
+        return;
+
+      if (_runState.Phase == GamePhase.Driving)
+        EnterLoseFromDriving();
+      else
+        EnterLose();
     }
 
     public void StartNewRun()
