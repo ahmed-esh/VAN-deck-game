@@ -87,6 +87,72 @@ namespace VanGame.Audio
       PlayRegionMusic(startCity);
     }
 
+    /// <summary>
+    /// Prepares regional music for a new run without starting a track.
+    /// Menu music keeps playing until the first destination is chosen.
+    /// </summary>
+    public void PrepareRunWithoutMusic()
+    {
+      _runEnded = false;
+      _currentCity = null;
+      KillMusicTweens();
+
+      if (musicSourceA != null)
+      {
+        musicSourceA.Stop();
+        musicSourceA.volume = 0f;
+      }
+
+      if (musicSourceB != null)
+      {
+        musicSourceB.Stop();
+        musicSourceB.volume = 0f;
+      }
+
+      _activeMusicSource = null;
+      _inactiveMusicSource = null;
+    }
+
+    /// <summary>
+    /// Crossfades from persistent menu music into the chosen region's loop.
+    /// </summary>
+    public void TransitionFromMenuMusic(CityDefinition city)
+    {
+      if (_runEnded || city == null)
+        return;
+
+      if (!_clipsByCity.TryGetValue(city, out AudioClip clip) || clip == null)
+      {
+        MenuMusicController.Instance?.StopImmediate();
+        return;
+      }
+
+      EnsureAudioSources();
+      KillMusicTweens();
+
+      _currentCity = city;
+
+      musicSourceA.clip = clip;
+      musicSourceA.loop = true;
+      musicSourceA.volume = 0f;
+      musicSourceA.Play();
+
+      _activeMusicSource = musicSourceA;
+      _inactiveMusicSource = musicSourceB;
+
+      float targetVolume = GetEffectiveMusicVolume();
+      MenuMusicController menuMusic = MenuMusicController.Instance;
+
+      _musicSequence = DOTween.Sequence();
+
+      if (menuMusic != null && menuMusic.IsPlaying)
+        _musicSequence.Join(menuMusic.FadeOut(crossfadeDuration));
+
+      _musicSequence.Join(FadeAudioSource(musicSourceA, targetVolume, crossfadeDuration));
+      _musicSequence.SetEase(crossfadeEase);
+      _musicSequence.OnComplete(() => menuMusic?.StopImmediate());
+    }
+
     public void PlayRegionMusic(CityDefinition city)
     {
       if (_runEnded || city == null)

@@ -1,7 +1,9 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VanGame;
 using VanGame.Audio;
+using VanGame.Data;
 using VanGame.UI;
 
 /// <summary>
@@ -99,6 +101,7 @@ public class CardHandHoverFan : MonoBehaviour
     Vector3 _drivingWheelRestRotation;
     Tween _drivingWheelTween;
     bool _drivingWheelAnimating;
+    GameFlowController _gameFlow;
 
     public bool IsFanned => _isFanned;
     public bool CanFocusCards => _focusEnabled && _isFanned && !_inspectMode && !_awaitingDrawnCard;
@@ -174,6 +177,9 @@ public class CardHandHoverFan : MonoBehaviour
 
     void Awake()
     {
+        if (_gameFlow == null)
+            _gameFlow = FindFirstObjectByType<GameFlowController>();
+
         _handRect = (RectTransform)transform;
         _boxCollider = GetComponent<BoxCollider2D>();
         Canvas rootCanvas = GetComponentInParent<Canvas>();
@@ -199,9 +205,42 @@ public class CardHandHoverFan : MonoBehaviour
         if (_inspectMode)
             return;
 
+        bool hoverAllowed = IsHandHoverAllowed();
+        if (_boxCollider != null)
+            _boxCollider.enabled = hoverAllowed;
+
+        if (!hoverAllowed)
+        {
+            ForceCollapseIfActive();
+            return;
+        }
+
         UpdateHover();
         UpdateCardFocus();
         UpdateLongHoverMagnify();
+    }
+
+    bool IsHandHoverAllowed()
+    {
+        if (_gameFlow?.RunState == null)
+            return true;
+
+        GamePhase phase = _gameFlow.RunState.Phase;
+        return phase != GamePhase.MapOpen && phase != GamePhase.MapSelectingDestination;
+    }
+
+    void ForceCollapseIfActive()
+    {
+        if (!_pointerInside && !_isFanned)
+            return;
+
+        _pointerInside = false;
+        _focusedCardIndex = -1;
+        ResetLongHoverMagnify(immediate: false);
+        StopDrivingWheelAnimation();
+
+        if (_isFanned)
+            Collapse();
     }
 
     void UpdateHover()

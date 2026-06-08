@@ -11,6 +11,7 @@ namespace VanGame.Data
     public const string PickObjectsName = "objects Souvenirs";
     public const string VanObjectsName = "objects Souvenirs in the car ";
     public const string DescriptionTextOnVanName = "description text on the van";
+    public const string TextHolderOnVanName = "text holder";
     public const string LineTextName = "line";
 
     public const float VanSouvenirSpacingX = 50f;
@@ -103,6 +104,9 @@ namespace VanGame.Data
       if (IsFixedSpecial(objectName))
         return GetFixedSpecial(objectName);
 
+      if (runState.CurrentOfferAssignments.TryGetValue(objectName, out SouvenirRewardType offerType))
+        return GetInfoForType(offerType);
+
       if (runState.SouvenirRewardAssignments.TryGetValue(objectName, out SouvenirRewardType type))
         return GetInfoForType(type);
 
@@ -140,51 +144,103 @@ namespace VanGame.Data
       return RegionSouvenirObjectNames.TryGetValue(key, out names) ? names : Array.Empty<string>();
     }
 
-    public static IReadOnlyList<string> GetAllAssignableObjectNames()
-    {
-      var names = new List<string>();
-      foreach (string[] regionNames in RegionSouvenirObjectNames.Values)
-      {
-        foreach (string name in regionNames)
-        {
-          if (!IsFixedSpecial(name))
-            names.Add(name);
-        }
-      }
-
-      return names;
-    }
-
-    public static void AssignRandomRewards(RunState runState)
+    public static void InitializeRewardPool(RunState runState)
     {
       if (runState == null)
         return;
 
       runState.SouvenirRewardAssignments.Clear();
+      runState.CurrentOfferAssignments.Clear();
+      runState.RemainingRewardPool.Clear();
 
-      IReadOnlyList<string> assignable = GetAllAssignableObjectNames();
-      if (assignable.Count == 0)
+      foreach (SouvenirRewardInfo reward in RandomizableRewards)
+        runState.RemainingRewardPool.Add(reward.Type);
+
+      ShuffleList(runState.RemainingRewardPool);
+    }
+
+    /// <summary>
+    /// Builds reward previews for the current city pick screen. Special souvenirs keep fixed text.
+    /// Non-special slots draw unique effects from the remaining pool.
+    /// </summary>
+    public static void BuildOfferForCity(RunState runState, CityDefinition city)
+    {
+      if (runState == null)
         return;
 
-      var rewardPool = new List<SouvenirRewardType>();
-      foreach (SouvenirRewardInfo reward in RandomizableRewards)
-        rewardPool.Add(reward.Type);
+      runState.CurrentOfferAssignments.Clear();
 
-      while (rewardPool.Count < assignable.Count)
+      string[] offerNames = GetSouvenirObjectNamesForCity(city);
+      if (offerNames == null || offerNames.Length == 0)
+        return;
+
+      var effectSlots = new List<string>();
+      for (int i = 0; i < offerNames.Length; i++)
       {
-        SouvenirRewardInfo pick = RandomizableRewards[UnityEngine.Random.Range(0, RandomizableRewards.Length)];
-        rewardPool.Add(pick.Type);
+        string objectName = offerNames[i];
+        if (string.IsNullOrWhiteSpace(objectName))
+          continue;
+
+        if (IsFixedSpecial(objectName))
+        {
+          SouvenirRewardInfo special = GetFixedSpecial(objectName);
+          runState.CurrentOfferAssignments[objectName] = special.Type;
+          continue;
+        }
+
+        effectSlots.Add(objectName);
       }
 
-      for (int i = rewardPool.Count - 1; i > 0; i--)
+      List<SouvenirRewardType> drawnEffects = DrawEffectsFromPool(runState, effectSlots.Count);
+      for (int i = 0; i < effectSlots.Count; i++)
+        runState.CurrentOfferAssignments[effectSlots[i]] = drawnEffects[i];
+    }
+
+    public static void CommitSouvenirPick(RunState runState, string objectName)
+    {
+      if (runState == null || string.IsNullOrWhiteSpace(objectName))
+        return;
+
+      if (!runState.CurrentOfferAssignments.TryGetValue(objectName, out SouvenirRewardType pickedType))
+        return;
+
+      runState.SouvenirRewardAssignments[objectName] = pickedType;
+
+      if (!IsFixedSpecial(objectName) && pickedType != SouvenirRewardType.None)
+        runState.RemainingRewardPool.Remove(pickedType);
+
+      runState.CurrentOfferAssignments.Clear();
+      ShuffleList(runState.RemainingRewardPool);
+    }
+
+    static List<SouvenirRewardType> DrawEffectsFromPool(RunState runState, int count)
+    {
+      var drawn = new List<SouvenirRewardType>();
+      if (runState == null || count <= 0)
+        return drawn;
+
+      ShuffleList(runState.RemainingRewardPool);
+
+      int take = Mathf.Min(count, runState.RemainingRewardPool.Count);
+      for (int i = 0; i < take; i++)
+        drawn.Add(runState.RemainingRewardPool[i]);
+
+      while (drawn.Count < count)
+        drawn.Add(SouvenirRewardType.None);
+
+      return drawn;
+    }
+
+    static void ShuffleList<T>(IList<T> list)
+    {
+      if (list == null || list.Count < 2)
+        return;
+
+      for (int i = list.Count - 1; i > 0; i--)
       {
         int swapIndex = UnityEngine.Random.Range(0, i + 1);
-        (rewardPool[i], rewardPool[swapIndex]) = (rewardPool[swapIndex], rewardPool[i]);
+        (list[i], list[swapIndex]) = (list[swapIndex], list[i]);
       }
-
-      int count = Mathf.Min(assignable.Count, rewardPool.Count);
-      for (int i = 0; i < count; i++)
-        runState.SouvenirRewardAssignments[assignable[i]] = rewardPool[i];
     }
 
     static string NormalizeCityKey(string value)

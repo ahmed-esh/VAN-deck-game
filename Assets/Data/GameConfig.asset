@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30abe75af18374fe59d837b1f1365728, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.GameConfig
-  startingMoney: 500
-  startingFuelPercent: 100
-  startingMoralePercent: 100
-  startingVanConditionPercent: 100
+  startingMoney: 600
+  startingFuelPercent: 85
+  startingMoralePercent: 70
+  startingVanConditionPercent: 45
   maxTripDays: 20
   drivingDaySectionCount: 8
   drivingDayIdleFillMinutes: 30

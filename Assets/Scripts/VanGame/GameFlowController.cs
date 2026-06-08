@@ -112,7 +112,7 @@ namespace VanGame
     public void StartNewRun()
     {
       _runState.ResetFromConfig(gameConfig, startCity, destinationCity);
-      SouvenirCatalog.AssignRandomRewards(_runState);
+      SouvenirCatalog.InitializeRewardPool(_runState);
       _runState.NotifyDestinationSelected(null);
       deckController?.Initialize(deckDefinition);
       drivingTurn?.OnLegEnded();
@@ -126,7 +126,10 @@ namespace VanGame
       loseScrollPanel?.Hide(immediate: true);
       SetOpenMapButtonVisible(true);
 
-      regionalMusic?.OnRunStarted(_runState.CurrentCity);
+      if (MenuMusicController.Instance != null)
+        regionalMusic?.PrepareRunWithoutMusic();
+      else
+        regionalMusic?.OnRunStarted(_runState.CurrentCity);
 
       _runState.SetPhase(GamePhase.CardIdle);
 
@@ -199,10 +202,14 @@ namespace VanGame
       _runState.DestinationCity = destination;
       _runState.DrivingDaysRemaining = drivingDays;
       _runState.DrivingDayTimer = 0f;
+      bool isFirstRegionPick = !_runState.HasPickedFirstDestination;
       _runState.HasPickedFirstDestination = true;
       _runState.NotifyDestinationSelected(destination);
 
-      regionalMusic?.PlayRegionMusic(destination);
+      if (isFirstRegionPick && MenuMusicController.Instance != null)
+        regionalMusic?.TransitionFromMenuMusic(destination);
+      else
+        regionalMusic?.PlayRegionMusic(destination);
 
       canvasTransition?.ConfirmCitySelection(region, BeginDrivingLeg);
     }

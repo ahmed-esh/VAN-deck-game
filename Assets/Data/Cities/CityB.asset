@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CityB
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Data.CityDefinition
   cityId: city_b
-  displayName: City B
+  displayName: The Town
   isStartCity: 0
   isDestinationCity: 1
   neighborCities:
@@ -22,8 +22,9 @@ MonoBehaviour:
   drivingDaysToNeighbor: 0200000002000000
   parking: 0
   costOfLiving: 1
-  funTheme: Grandpa's dream destination
-  regionDescription: ohhh the town you finally detention, your grandpa really loved this space
+  funTheme: The trip's final destination
+  regionDescription: Ohhh, the town your final destination; your Family really loves
+    this space
   baseMoraleDelta: 20
   stayDaysInCity: 1
   possibleEvents:

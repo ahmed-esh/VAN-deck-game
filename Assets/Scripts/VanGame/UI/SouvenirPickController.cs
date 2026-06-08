@@ -158,6 +158,8 @@ namespace VanGame.UI
       else
         gameObject.SetActive(true);
 
+      SouvenirCatalog.BuildOfferForCity(_runState, city);
+
       string[] offerNames = SouvenirCatalog.GetSouvenirObjectNamesForCity(city);
       for (int i = 0; i < offerNames.Length; i++)
       {

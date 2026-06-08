@@ -26,14 +26,11 @@ namespace VanGame.Core
       if (_runState == null || type == SouvenirRewardType.None)
         return false;
 
-      foreach (string souvenirId in _runState.OwnedSouvenirIds)
-      {
-        SouvenirRewardInfo info = SouvenirCatalog.GetInfo(_runState, souvenirId);
-        if (info.Type == type)
-          return true;
-      }
+      if (string.IsNullOrWhiteSpace(_runState.ActiveSouvenirId))
+        return false;
 
-      return false;
+      SouvenirRewardInfo info = SouvenirCatalog.GetInfo(_runState, _runState.ActiveSouvenirId);
+      return info.Type == type;
     }
 
     public int GetExtraHandSize()
@@ -123,6 +120,14 @@ namespace VanGame.Core
         return;
 
       _runState.UsedDoubleCardThisRound = false;
+      RefreshActiveSouvenirState();
+    }
+
+    public void RefreshActiveSouvenirState()
+    {
+      if (_runState == null)
+        return;
+
       _runState.DoubleNextCardEffect = OwnsReward(SouvenirRewardType.DoubleNextCard);
     }
 

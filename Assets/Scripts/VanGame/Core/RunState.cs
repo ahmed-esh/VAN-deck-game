@@ -48,7 +48,12 @@ namespace VanGame.Core
     public List<string> OwnedSouvenirIds { get; } = new List<string>();
     public Dictionary<string, SouvenirRewardType> SouvenirRewardAssignments { get; } =
       new Dictionary<string, SouvenirRewardType>();
+    public Dictionary<string, SouvenirRewardType> CurrentOfferAssignments { get; } =
+      new Dictionary<string, SouvenirRewardType>();
+    public List<SouvenirRewardType> RemainingRewardPool { get; } = new List<SouvenirRewardType>();
     public List<string> EventLog { get; } = new List<string>();
+
+    public string ActiveSouvenirId { get; set; }
 
     public bool FedToday { get; set; }
     public bool HasPickedFirstDestination { get; set; }
@@ -136,6 +141,9 @@ namespace VanGame.Core
       OwnedAbilities.Clear();
       OwnedSouvenirIds.Clear();
       SouvenirRewardAssignments.Clear();
+      CurrentOfferAssignments.Clear();
+      RemainingRewardPool.Clear();
+      ActiveSouvenirId = null;
       EventLog.Clear();
 
       if (startCity != null)

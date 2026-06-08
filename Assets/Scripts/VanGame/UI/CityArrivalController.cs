@@ -137,6 +137,8 @@ namespace VanGame.UI
     {
       if (!string.IsNullOrWhiteSpace(souvenirObjectName) && _runState != null)
       {
+        SouvenirCatalog.CommitSouvenirPick(_runState, souvenirObjectName);
+
         if (!_runState.OwnedSouvenirIds.Contains(souvenirObjectName))
           _runState.OwnedSouvenirIds.Add(souvenirObjectName);
 

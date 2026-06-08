@@ -5648,7 +5648,7 @@ MonoBehaviour:
   - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
     cityB: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
     roadVisual: {fileID: 1161780517}
-  - cityA: {fileID: 11400000, guid: 51f8c8e9e942f4a359d1703c66b5faf3, type: 2}
+  - cityA: {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
     cityB: {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
     roadVisual: {fileID: 804124088}
   - cityA: {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
@@ -6589,7 +6589,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &804124089
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8093,7 +8093,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!225 &1010857726
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -12940,7 +12940,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1603474863
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13760,7 +13760,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8113208, g: 0.2793699, b: 0.31059086, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -14425,7 +14425,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!225 &1840791108
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -15203,7 +15203,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1897114319
 RectTransform:
   m_ObjectHideFlags: 0

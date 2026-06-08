@@ -30,15 +30,26 @@ namespace VanGame.UI
     readonly Dictionary<string, GameObject> _vanObjectsByName = new Dictionary<string, GameObject>(StringComparer.Ordinal);
 
     RunState _runState;
+    GameFlowController _gameFlow;
+    SouvenirRewardResolver _souvenirRewards;
     RectTransform _descriptionBackdropRect;
     CanvasGroup _descriptionBackdropGroup;
     Vector3 _descriptionBackdropRestScale = Vector3.one;
     Vector2 _descriptionBackdropRestPosition;
     float _descriptionBackdropRestAlpha = 1f;
     Tween _descriptionTween;
+    SouvenirVanItem _hoveredVanItem;
+    bool _descriptionVisible;
+    int _pendingHideDescriptionFrame = -1;
 
     void Awake()
     {
+      if (_gameFlow == null)
+        _gameFlow = FindFirstObjectByType<GameFlowController>();
+
+      if (_souvenirRewards == null)
+        _souvenirRewards = FindFirstObjectByType<SouvenirRewardResolver>();
+
       EnsureVanObjectsRoot();
       EnsureDescriptionText();
       CacheDescriptionBackdropTargets();
@@ -48,13 +59,48 @@ namespace VanGame.UI
 
     void OnDisable()
     {
+      if (_runState != null)
+        _runState.PhaseChanged -= OnRunPhaseChanged;
+
       KillDescriptionTween();
+      _hoveredVanItem = null;
+      _descriptionVisible = false;
+      _pendingHideDescriptionFrame = -1;
+    }
+
+    void LateUpdate()
+    {
+      if (_pendingHideDescriptionFrame < 0)
+        return;
+
+      if (Time.frameCount <= _pendingHideDescriptionFrame)
+        return;
+
+      _pendingHideDescriptionFrame = -1;
+
+      if (_hoveredVanItem != null)
+        return;
+
+      _descriptionVisible = false;
+      HideDescription(immediate: false);
     }
 
     public void Initialize(RunState runState)
     {
+      if (_runState != null)
+        _runState.PhaseChanged -= OnRunPhaseChanged;
+
       _runState = runState;
+
+      if (_runState != null)
+        _runState.PhaseChanged += OnRunPhaseChanged;
+
       RefreshOwnedSouvenirs();
+    }
+
+    void OnRunPhaseChanged()
+    {
+      RefreshVanSelectionVisuals();
     }
 
     public void OnSouvenirPicked(string objectName)
@@ -133,8 +179,26 @@ namespace VanGame.UI
         descriptionText = foundInCanvas.GetComponent<TextMeshProUGUI>();
     }
 
+    void EnsureDescriptionBackdrop()
+    {
+      if (descriptionBackdropImage != null)
+        return;
+
+      if (vanObjectsRoot != null)
+      {
+        Transform found = vanObjectsRoot.Find(SouvenirCatalog.TextHolderOnVanName);
+        if (found == null)
+          found = vanObjectsRoot.FindDeepChild(SouvenirCatalog.TextHolderOnVanName.Trim());
+
+        if (found != null)
+          descriptionBackdropImage = found.GetComponent<Image>();
+      }
+    }
+
     void CacheDescriptionBackdropTargets()
     {
+      EnsureDescriptionBackdrop();
+
       if (descriptionBackdropImage == null)
         return;
 
@@ -171,6 +235,7 @@ namespace VanGame.UI
         if (child == null
           || IsDescriptionTextObject(child)
           || IsDescriptionBackdropObject(child)
+          || IsTextHolderObject(child)
           || IsSlotPositionObject(child))
           continue;
 
@@ -203,6 +268,18 @@ namespace VanGame.UI
       return child.name == SouvenirCatalog.DescriptionTextOnVanName;
     }
 
+    bool IsTextHolderObject(Transform child)
+    {
+      if (child == null)
+        return false;
+
+      if (child.name == SouvenirCatalog.TextHolderOnVanName
+        || child.name.Trim() == SouvenirCatalog.TextHolderOnVanName.Trim())
+        return true;
+
+      return descriptionBackdropImage != null && child.gameObject == descriptionBackdropImage.gameObject;
+    }
+
     void RegisterVanObject(GameObject vanObject)
     {
       if (vanObject == null)
@@ -223,8 +300,10 @@ namespace VanGame.UI
       item.Configure(objectName);
       item.Hovered -= OnVanItemHovered;
       item.Unhovered -= OnVanItemUnhovered;
+      item.Clicked -= OnVanItemClicked;
       item.Hovered += OnVanItemHovered;
       item.Unhovered += OnVanItemUnhovered;
+      item.Clicked += OnVanItemClicked;
 
       if (vanObject.GetComponent<SouvenirVanShake2D>() == null)
         vanObject.AddComponent<SouvenirVanShake2D>();
@@ -297,6 +376,60 @@ namespace VanGame.UI
         shake?.StartShake();
         slot++;
       }
+
+      EnsureActiveSouvenirSelection();
+      RefreshVanSelectionVisuals();
+    }
+
+    void EnsureActiveSouvenirSelection()
+    {
+      if (_runState == null || _runState.OwnedSouvenirIds.Count == 0)
+      {
+        _runState.ActiveSouvenirId = null;
+        return;
+      }
+
+      if (_runState.OwnedSouvenirIds.Count == 1)
+      {
+        _runState.ActiveSouvenirId = _runState.OwnedSouvenirIds[0];
+        return;
+      }
+
+      if (string.IsNullOrWhiteSpace(_runState.ActiveSouvenirId)
+        || !_runState.OwnedSouvenirIds.Contains(_runState.ActiveSouvenirId))
+        _runState.ActiveSouvenirId = null;
+    }
+
+    void RefreshVanSelectionVisuals()
+    {
+      bool canSelect = CanSelectSouvenirsDuringDriving();
+
+      foreach (KeyValuePair<string, GameObject> entry in _vanObjectsByName)
+      {
+        GameObject vanObject = entry.Value;
+        if (vanObject == null || !vanObject.activeSelf)
+          continue;
+
+        SouvenirVanItem item = vanObject.GetComponent<SouvenirVanItem>();
+        if (item == null)
+          continue;
+
+        bool isOwned = _runState != null && _runState.OwnedSouvenirIds.Contains(entry.Key);
+        bool isSelected = isOwned
+          && _runState != null
+          && entry.Key == _runState.ActiveSouvenirId;
+
+        item.SetSelectionEnabled(canSelect && isOwned);
+        item.SetSelected(isSelected);
+      }
+    }
+
+    bool CanSelectSouvenirsDuringDriving()
+    {
+      if (_gameFlow?.RunState == null)
+        return false;
+
+      return _gameFlow.RunState.Phase == GamePhase.Driving;
     }
 
     void PlaceSouvenirAtSlot(RectTransform souvenirRect, int slotIndex)
@@ -327,6 +460,9 @@ namespace VanGame.UI
       if (item == null || _runState == null)
         return;
 
+      _pendingHideDescriptionFrame = -1;
+      _hoveredVanItem = item;
+
       SouvenirRewardInfo info = SouvenirCatalog.GetInfo(_runState, item.SouvenirObjectName);
 
       if (descriptionText != null)
@@ -335,10 +471,34 @@ namespace VanGame.UI
         descriptionText.gameObject.SetActive(true);
       }
 
+      if (_descriptionVisible)
+        return;
+
+      _descriptionVisible = true;
       ShowDescriptionBackdrop();
     }
 
-    void OnVanItemUnhovered(SouvenirVanItem item) => HideDescription(immediate: false);
+    void OnVanItemUnhovered(SouvenirVanItem item)
+    {
+      if (item == null || _hoveredVanItem != item)
+        return;
+
+      _hoveredVanItem = null;
+      _pendingHideDescriptionFrame = Time.frameCount;
+    }
+
+    void OnVanItemClicked(SouvenirVanItem item)
+    {
+      if (item == null || _runState == null || !CanSelectSouvenirsDuringDriving())
+        return;
+
+      if (!_runState.OwnedSouvenirIds.Contains(item.SouvenirObjectName))
+        return;
+
+      _runState.ActiveSouvenirId = item.SouvenirObjectName;
+      RefreshVanSelectionVisuals();
+      _souvenirRewards?.RefreshActiveSouvenirState();
+    }
 
     void ShowDescriptionBackdrop()
     {
@@ -409,6 +569,8 @@ namespace VanGame.UI
 
     void ResetDescriptionBackdropInstant()
     {
+      _descriptionVisible = false;
+
       if (descriptionBackdropImage == null)
         return;
 

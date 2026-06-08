@@ -97,8 +97,10 @@ namespace VanGame.Visual
 
       if (run.Phase == GamePhase.Win || run.Phase == GamePhase.Lose)
       {
-        _heldTerrainCity = null;
-        return null;
+        if (_heldTerrainCity != null)
+          return _heldTerrainCity;
+
+        return run.CurrentCity;
       }
 
       if (run.DestinationCity != null)
