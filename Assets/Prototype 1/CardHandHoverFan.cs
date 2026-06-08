@@ -1,6 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VanGame.Audio;
 using VanGame.UI;
 
 /// <summary>
@@ -212,8 +213,9 @@ public class CardHandHoverFan : MonoBehaviour
 
         if (inside && !_pointerInside)
         {
-            _pointerInside = true;
-            FanOut();
+        _pointerInside = true;
+        GameSfxController.TryPlayCardShuffle();
+        FanOut();
         }
         else if (!inside && _pointerInside)
         {

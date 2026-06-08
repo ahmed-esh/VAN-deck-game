@@ -36,7 +36,10 @@ namespace VanGame.UI
         pauseToggle.StateChanged -= OnPauseStateChanged;
 
       if (pauseToggle != null && !pauseToggle.IsStateA)
+      {
         Time.timeScale = 1f;
+        AudioListener.pause = false;
+      }
     }
 
     void InitializeSoundState()
@@ -61,6 +64,7 @@ namespace VanGame.UI
         return;
 
       Time.timeScale = 1f;
+      AudioListener.pause = false;
       pauseToggle.SetState(true, animate: false);
     }
 
@@ -88,6 +92,7 @@ namespace VanGame.UI
         return;
 
       Time.timeScale = notPaused ? 1f : 0f;
+      AudioListener.pause = !notPaused;
     }
   }
 }

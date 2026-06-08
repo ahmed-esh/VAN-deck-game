@@ -4,6 +4,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VanGame.Audio;
 using VanGame.Core;
 using VanGame.Data;
 
@@ -197,6 +198,7 @@ namespace VanGame.UI
         gameObject.SetActive(true);
 
       PlayCurtainUnfold();
+      GameSfxController.TryPlayWindowPopup();
 
       if (headerText != null && city != null)
         headerText.text = string.Format(headerFormat, city.displayName);

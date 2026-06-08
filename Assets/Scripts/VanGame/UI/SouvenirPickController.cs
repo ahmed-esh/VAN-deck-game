@@ -4,6 +4,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VanGame.Audio;
 using VanGame.Core;
 using VanGame.Data;
 
@@ -19,6 +20,15 @@ namespace VanGame.UI
     [SerializeField] Image textRight;
     [SerializeField] float textFadeDuration = 0.2f;
     [SerializeField] float textActiveScale = 1.04f;
+    [SerializeField] float showDuration = 0.45f;
+    [SerializeField] float hideDuration = 0.32f;
+    [SerializeField] float showStartScale = 0.9f;
+    [SerializeField] float souvenirInDuration = 0.38f;
+    [SerializeField] float souvenirInStagger = 0.1f;
+    [SerializeField] float souvenirInStartScale = 0.65f;
+    [SerializeField] Ease showEase = Ease.OutCubic;
+    [SerializeField] Ease hideEase = Ease.InCubic;
+    [SerializeField] Ease souvenirInEase = Ease.OutBack;
 
     readonly List<SouvenirPickItem> _activeItems = new List<SouvenirPickItem>();
     readonly Dictionary<string, GameObject> _pickObjectsByName = new Dictionary<string, GameObject>(StringComparer.Ordinal);
@@ -28,6 +38,10 @@ namespace VanGame.UI
     RunState _runState;
     int _hoveredSlotIndex = -1;
     bool _isInitialized;
+    CanvasGroup _canvasGroup;
+    RectTransform _rootRect;
+    Vector3 _restScale = Vector3.one;
+    Tween _showHideTween;
 
     void Awake()
     {
@@ -87,6 +101,21 @@ namespace VanGame.UI
         if (found != null)
           textRight = found.GetComponent<Image>();
       }
+
+      CacheRootAnimationTargets();
+    }
+
+    void CacheRootAnimationTargets()
+    {
+      if (root == null)
+        return;
+
+      _rootRect = root.transform as RectTransform;
+      _canvasGroup = root.GetComponent<CanvasGroup>();
+      if (_canvasGroup == null)
+        _canvasGroup = root.AddComponent<CanvasGroup>();
+
+      _restScale = _rootRect != null ? _rootRect.localScale : Vector3.one;
     }
 
     void CachePickObjects()
@@ -139,7 +168,7 @@ namespace VanGame.UI
         source.SetActive(true);
         SouvenirPickItem item = EnsurePickItem(source, i);
         item.Configure(objectName, i);
-        item.SetInteractable(true);
+        item.SetInteractable(false);
         item.Hovered -= OnItemHovered;
         item.Unhovered -= OnItemUnhovered;
         item.Clicked -= OnItemClicked;
@@ -151,6 +180,140 @@ namespace VanGame.UI
 
       SetLineText(null);
       ResetTextSlots();
+      GameSfxController.TryPlaySouvenirsPopup();
+      PlayShowAnimation();
+    }
+
+    void PlayShowAnimation()
+    {
+      KillShowHideTween();
+      CacheRootAnimationTargets();
+
+      if (_canvasGroup != null)
+      {
+        _canvasGroup.alpha = 0f;
+        _canvasGroup.interactable = false;
+        _canvasGroup.blocksRaycasts = false;
+      }
+
+      if (_rootRect != null)
+        _rootRect.localScale = _restScale * showStartScale;
+
+      Sequence sequence = DOTween.Sequence();
+      sequence.SetLink(root, LinkBehaviour.KillOnDisable);
+
+      if (_canvasGroup != null)
+      {
+        sequence.Join(
+          _canvasGroup.DOFade(1f, showDuration)
+            .SetEase(showEase));
+      }
+
+      if (_rootRect != null)
+      {
+        sequence.Join(
+          _rootRect.DOScale(_restScale, showDuration)
+            .SetEase(Ease.OutBack));
+      }
+
+      for (int i = 0; i < _activeItems.Count; i++)
+      {
+        SouvenirPickItem item = _activeItems[i];
+        if (item == null)
+          continue;
+
+        RectTransform itemRect = item.transform as RectTransform;
+        if (itemRect == null)
+          continue;
+
+        Vector3 itemRestScale = itemRect.localScale;
+        itemRect.localScale = itemRestScale * souvenirInStartScale;
+
+        float delay = showDuration * 0.35f + i * souvenirInStagger;
+        sequence.Insert(
+          delay,
+          itemRect.DOScale(itemRestScale, souvenirInDuration)
+            .SetEase(souvenirInEase)
+            .OnComplete(() => item.SetInteractable(true)));
+      }
+
+      sequence.OnComplete(EnableInteraction);
+      _showHideTween = sequence;
+    }
+
+    void EnableInteraction()
+    {
+      if (_canvasGroup == null)
+        return;
+
+      _canvasGroup.interactable = true;
+      _canvasGroup.blocksRaycasts = true;
+    }
+
+    void PlayHideAnimation(Action onComplete)
+    {
+      KillShowHideTween();
+      CacheRootAnimationTargets();
+
+      if (_canvasGroup == null && _rootRect == null)
+      {
+        DeactivateRoot();
+        onComplete?.Invoke();
+        return;
+      }
+
+      if (_canvasGroup != null)
+      {
+        _canvasGroup.interactable = false;
+        _canvasGroup.blocksRaycasts = false;
+      }
+
+      Sequence sequence = DOTween.Sequence();
+      sequence.SetLink(root, LinkBehaviour.KillOnDisable);
+
+      if (_canvasGroup != null)
+      {
+        sequence.Join(
+          _canvasGroup.DOFade(0f, hideDuration)
+            .SetEase(hideEase));
+      }
+
+      if (_rootRect != null)
+      {
+        sequence.Join(
+          _rootRect.DOScale(_restScale * showStartScale, hideDuration)
+            .SetEase(hideEase));
+      }
+
+      sequence.OnComplete(() =>
+      {
+        DeactivateRoot();
+        onComplete?.Invoke();
+      });
+
+      _showHideTween = sequence;
+    }
+
+    void KillShowHideTween()
+    {
+      if (_showHideTween != null && _showHideTween.IsActive())
+        _showHideTween.Kill();
+
+      _showHideTween = null;
+
+      if (_canvasGroup != null)
+        _canvasGroup.DOKill();
+
+      if (_rootRect != null)
+        _rootRect.DOKill();
+    }
+
+    void DeactivateRoot()
+    {
+      if (root != null)
+        root.SetActive(false);
+      else
+        gameObject.SetActive(false);
     }
 
     SouvenirPickItem EnsurePickItem(GameObject source, int slotIndex)
@@ -193,10 +356,14 @@ namespace VanGame.UI
       foreach (SouvenirPickItem active in _activeItems)
         active.SetInteractable(false);
 
+      GameSfxController.TryPlayCardClick();
+
       string picked = item.SouvenirObjectName;
-      Hide(immediate: false);
-      _onPicked?.Invoke(picked);
-      _onPicked = null;
+      Hide(immediate: false, () =>
+      {
+        _onPicked?.Invoke(picked);
+        _onPicked = null;
+      });
     }
 
     void SetLineText(string text)
@@ -246,14 +413,28 @@ namespace VanGame.UI
 
     public void Hide(bool immediate)
     {
-      if (root != null)
-        root.SetActive(false);
-      else
-        gameObject.SetActive(false);
+      Hide(immediate, null);
+    }
 
-      ClearActiveItems();
+    public void Hide(bool immediate, Action onComplete)
+    {
+      KillShowHideTween();
       SetLineText(null);
       ResetTextSlots();
+
+      if (immediate || root == null || !root.activeInHierarchy)
+      {
+        ClearActiveItems();
+        DeactivateRoot();
+        onComplete?.Invoke();
+        return;
+      }
+
+      PlayHideAnimation(() =>
+      {
+        ClearActiveItems();
+        onComplete?.Invoke();
+      });
     }
 
     void ClearActiveItems()
@@ -277,10 +458,18 @@ namespace VanGame.UI
 
     void OnDisable()
     {
+      KillShowHideTween();
+
       foreach (Image slot in _textSlots)
       {
         if (slot != null)
           slot.transform.DOKill();
+      }
+
+      foreach (SouvenirPickItem item in _activeItems)
+      {
+        if (item?.transform != null)
+          item.transform.DOKill();
       }
     }
   }

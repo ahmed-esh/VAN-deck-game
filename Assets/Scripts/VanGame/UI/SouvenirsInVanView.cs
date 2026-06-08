@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,20 +15,40 @@ namespace VanGame.UI
     [SerializeField] Transform vanObjectsRoot;
     [SerializeField] Transform pickObjectsTemplateRoot;
     [SerializeField] TextMeshProUGUI descriptionText;
-    [SerializeField] float vanScale = 0.42f;
-    [SerializeField] float slotSpacingX = 50f;
+    [SerializeField] Image descriptionBackdropImage;
+    [Header("Van souvenir slots")]
+    [SerializeField] RectTransform[] souvenirSlotPositions = Array.Empty<RectTransform>();
     [SerializeField] Vector2 vanBaseAnchoredPosition = new Vector2(-120f, 40f);
+    [Header("Description backdrop animation")]
+    [SerializeField] float descriptionShowDuration = 0.34f;
+    [SerializeField] float descriptionHideDuration = 0.24f;
+    [SerializeField] float descriptionShowStartScale = 0.86f;
+    [SerializeField] float descriptionShowYOffset = -8f;
+    [SerializeField] Ease descriptionShowEase = Ease.OutBack;
+    [SerializeField] Ease descriptionHideEase = Ease.InCubic;
 
     readonly Dictionary<string, GameObject> _vanObjectsByName = new Dictionary<string, GameObject>(StringComparer.Ordinal);
 
     RunState _runState;
+    RectTransform _descriptionBackdropRect;
+    CanvasGroup _descriptionBackdropGroup;
+    Vector3 _descriptionBackdropRestScale = Vector3.one;
+    Vector2 _descriptionBackdropRestPosition;
+    float _descriptionBackdropRestAlpha = 1f;
+    Tween _descriptionTween;
 
     void Awake()
     {
       EnsureVanObjectsRoot();
       EnsureDescriptionText();
+      CacheDescriptionBackdropTargets();
       RegisterPreplacedVanObjects();
-      HideDescription();
+      HideDescription(immediate: true);
+    }
+
+    void OnDisable()
+    {
+      KillDescriptionTween();
     }
 
     public void Initialize(RunState runState)
@@ -112,6 +133,27 @@ namespace VanGame.UI
         descriptionText = foundInCanvas.GetComponent<TextMeshProUGUI>();
     }
 
+    void CacheDescriptionBackdropTargets()
+    {
+      if (descriptionBackdropImage == null)
+        return;
+
+      _descriptionBackdropRect = descriptionBackdropImage.rectTransform;
+      _descriptionBackdropGroup = descriptionBackdropImage.GetComponent<CanvasGroup>();
+      if (_descriptionBackdropGroup == null)
+        _descriptionBackdropGroup = descriptionBackdropImage.gameObject.AddComponent<CanvasGroup>();
+
+      _descriptionBackdropRestScale = _descriptionBackdropRect != null
+        ? _descriptionBackdropRect.localScale
+        : Vector3.one;
+      _descriptionBackdropRestPosition = _descriptionBackdropRect != null
+        ? _descriptionBackdropRect.anchoredPosition
+        : Vector2.zero;
+      _descriptionBackdropRestAlpha = _descriptionBackdropGroup.alpha > 0.01f
+        ? _descriptionBackdropGroup.alpha
+        : 1f;
+    }
+
     Transform FindCanvasCards()
     {
       GameObject canvas = GameObject.Find("Canvas_Cards");
@@ -126,11 +168,34 @@ namespace VanGame.UI
       for (int i = 0; i < vanObjectsRoot.childCount; i++)
       {
         Transform child = vanObjectsRoot.GetChild(i);
-        if (child == null || IsDescriptionTextObject(child))
+        if (child == null
+          || IsDescriptionTextObject(child)
+          || IsDescriptionBackdropObject(child)
+          || IsSlotPositionObject(child))
           continue;
 
         RegisterVanObject(child.gameObject);
       }
+    }
+
+    bool IsDescriptionBackdropObject(Transform child)
+    {
+      return descriptionBackdropImage != null && child.gameObject == descriptionBackdropImage.gameObject;
+    }
+
+    bool IsSlotPositionObject(Transform child)
+    {
+      if (child == null || souvenirSlotPositions == null)
+        return false;
+
+      for (int i = 0; i < souvenirSlotPositions.Length; i++)
+      {
+        RectTransform slot = souvenirSlotPositions[i];
+        if (slot != null && child == slot)
+          return true;
+      }
+
+      return false;
     }
 
     static bool IsDescriptionTextObject(Transform child)
@@ -187,13 +252,6 @@ namespace VanGame.UI
       GameObject clone = Instantiate(template.gameObject, vanObjectsRoot);
       clone.name = objectName;
       RegisterVanObject(clone);
-
-      RectTransform rect = clone.transform as RectTransform;
-      if (rect != null)
-      {
-        rect.localScale = Vector3.one * vanScale;
-        rect.pivot = new Vector2(0.5f, 0f);
-      }
     }
 
     Transform FindPickTemplate(string objectName)
@@ -233,9 +291,7 @@ namespace VanGame.UI
           continue;
 
         vanObject.SetActive(true);
-        RectTransform rect = vanObject.transform as RectTransform;
-        if (rect != null)
-          rect.anchoredPosition = new Vector2(slot * slotSpacingX, rect.anchoredPosition.y);
+        PlaceSouvenirAtSlot(vanObject.transform as RectTransform, slot);
 
         SouvenirVanShake2D shake = vanObject.GetComponent<SouvenirVanShake2D>();
         shake?.StartShake();
@@ -243,25 +299,143 @@ namespace VanGame.UI
       }
     }
 
+    void PlaceSouvenirAtSlot(RectTransform souvenirRect, int slotIndex)
+    {
+      if (souvenirRect == null)
+        return;
+
+      RectTransform slotRect = GetSlotRect(slotIndex);
+      if (slotRect == null)
+        return;
+
+      if (souvenirRect.parent == slotRect.parent)
+        souvenirRect.anchoredPosition = slotRect.anchoredPosition;
+      else
+        souvenirRect.position = slotRect.position;
+    }
+
+    RectTransform GetSlotRect(int slotIndex)
+    {
+      if (souvenirSlotPositions == null || slotIndex < 0 || slotIndex >= souvenirSlotPositions.Length)
+        return null;
+
+      return souvenirSlotPositions[slotIndex];
+    }
+
     void OnVanItemHovered(SouvenirVanItem item)
     {
-      if (item == null || _runState == null || descriptionText == null)
+      if (item == null || _runState == null)
         return;
 
       SouvenirRewardInfo info = SouvenirCatalog.GetInfo(_runState, item.SouvenirObjectName);
-      descriptionText.text = info.FunctionText;
-      descriptionText.gameObject.SetActive(true);
+
+      if (descriptionText != null)
+      {
+        descriptionText.text = info.FunctionText;
+        descriptionText.gameObject.SetActive(true);
+      }
+
+      ShowDescriptionBackdrop();
     }
 
-    void OnVanItemUnhovered(SouvenirVanItem item) => HideDescription();
+    void OnVanItemUnhovered(SouvenirVanItem item) => HideDescription(immediate: false);
 
-    void HideDescription()
+    void ShowDescriptionBackdrop()
     {
-      if (descriptionText == null)
+      if (descriptionBackdropImage == null)
         return;
 
-      descriptionText.text = string.Empty;
-      descriptionText.gameObject.SetActive(false);
+      CacheDescriptionBackdropTargets();
+      KillDescriptionTween();
+
+      descriptionBackdropImage.gameObject.SetActive(true);
+      _descriptionBackdropGroup.alpha = 0f;
+      _descriptionBackdropRect.localScale = _descriptionBackdropRestScale * descriptionShowStartScale;
+      _descriptionBackdropRect.anchoredPosition = _descriptionBackdropRestPosition + new Vector2(0f, descriptionShowYOffset);
+
+      Sequence sequence = DOTween.Sequence();
+      sequence.SetLink(descriptionBackdropImage.gameObject, LinkBehaviour.KillOnDisable);
+      sequence.Join(
+        _descriptionBackdropGroup.DOFade(_descriptionBackdropRestAlpha, descriptionShowDuration)
+          .SetEase(descriptionShowEase));
+      sequence.Join(
+        _descriptionBackdropRect.DOScale(_descriptionBackdropRestScale, descriptionShowDuration)
+          .SetEase(descriptionShowEase));
+      sequence.Join(
+        _descriptionBackdropRect.DOAnchorPos(_descriptionBackdropRestPosition, descriptionShowDuration)
+          .SetEase(descriptionShowEase));
+
+      _descriptionTween = sequence;
+    }
+
+    void HideDescription(bool immediate)
+    {
+      KillDescriptionTween();
+
+      if (descriptionText != null)
+      {
+        descriptionText.text = string.Empty;
+        descriptionText.gameObject.SetActive(false);
+      }
+
+      if (descriptionBackdropImage == null)
+        return;
+
+      if (immediate || !descriptionBackdropImage.gameObject.activeInHierarchy)
+      {
+        ResetDescriptionBackdropInstant();
+        return;
+      }
+
+      CacheDescriptionBackdropTargets();
+
+      Sequence sequence = DOTween.Sequence();
+      sequence.SetLink(descriptionBackdropImage.gameObject, LinkBehaviour.KillOnDisable);
+      sequence.Join(
+        _descriptionBackdropGroup.DOFade(0f, descriptionHideDuration)
+          .SetEase(descriptionHideEase));
+      sequence.Join(
+        _descriptionBackdropRect.DOScale(_descriptionBackdropRestScale * descriptionShowStartScale, descriptionHideDuration)
+          .SetEase(descriptionHideEase));
+      sequence.Join(
+        _descriptionBackdropRect.DOAnchorPos(
+          _descriptionBackdropRestPosition + new Vector2(0f, descriptionShowYOffset),
+          descriptionHideDuration)
+          .SetEase(descriptionHideEase));
+      sequence.OnComplete(ResetDescriptionBackdropInstant);
+
+      _descriptionTween = sequence;
+    }
+
+    void ResetDescriptionBackdropInstant()
+    {
+      if (descriptionBackdropImage == null)
+        return;
+
+      descriptionBackdropImage.gameObject.SetActive(false);
+
+      if (_descriptionBackdropGroup != null)
+        _descriptionBackdropGroup.alpha = 0f;
+
+      if (_descriptionBackdropRect != null)
+      {
+        _descriptionBackdropRect.localScale = _descriptionBackdropRestScale;
+        _descriptionBackdropRect.anchoredPosition = _descriptionBackdropRestPosition;
+      }
+    }
+
+    void KillDescriptionTween()
+    {
+      if (_descriptionTween != null && _descriptionTween.IsActive())
+        _descriptionTween.Kill();
+
+      _descriptionTween = null;
+
+      if (_descriptionBackdropGroup != null)
+        _descriptionBackdropGroup.DOKill();
+
+      if (_descriptionBackdropRect != null)
+        _descriptionBackdropRect.DOKill();
     }
   }
 

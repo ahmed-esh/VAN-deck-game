@@ -31,6 +31,7 @@ namespace VanGame.Visual
     readonly HashSet<GameObject> _managedRoots = new HashSet<GameObject>();
     readonly List<ParallaxBackground2D> _activeParallax = new List<ParallaxBackground2D>();
     CityDefinition _activeCity;
+    CityDefinition _heldTerrainCity;
 
     void Awake()
     {
@@ -44,7 +45,7 @@ namespace VanGame.Visual
     void OnEnable()
     {
       Subscribe(true);
-      ApplyForCity(gameFlow?.RunState?.DestinationCity);
+      RefreshTerrain();
     }
 
     void OnDisable()
@@ -59,19 +60,93 @@ namespace VanGame.Visual
         return;
 
       if (subscribe)
+      {
         run.DestinationSelected += OnDestinationSelected;
+        run.PhaseChanged += OnPhaseChanged;
+      }
       else
+      {
         run.DestinationSelected -= OnDestinationSelected;
+        run.PhaseChanged -= OnPhaseChanged;
+      }
     }
 
     void OnDestinationSelected(CityDefinition city)
     {
-      ApplyForCity(city);
+      if (city != null)
+        _heldTerrainCity = city;
+
+      RefreshTerrain();
+    }
+
+    void OnPhaseChanged()
+    {
+      RefreshTerrain();
+    }
+
+    void RefreshTerrain()
+    {
+      ApplyForCity(ResolveDisplayCity());
+    }
+
+    CityDefinition ResolveDisplayCity()
+    {
+      RunState run = gameFlow?.RunState;
+      if (run == null)
+        return null;
+
+      if (run.Phase == GamePhase.Win || run.Phase == GamePhase.Lose)
+      {
+        _heldTerrainCity = null;
+        return null;
+      }
+
+      if (run.DestinationCity != null)
+      {
+        _heldTerrainCity = run.DestinationCity;
+        return run.DestinationCity;
+      }
+
+      if (IsMapPhase(run.Phase))
+      {
+        _heldTerrainCity = null;
+        return null;
+      }
+
+      if (_heldTerrainCity != null && run.CurrentCity == _heldTerrainCity)
+        return _heldTerrainCity;
+
+      if (IsArrivalFlowPhase(run.Phase) && _heldTerrainCity != null)
+        return _heldTerrainCity;
+
+      return null;
+    }
+
+    static bool IsMapPhase(GamePhase phase)
+    {
+      return phase == GamePhase.MapOpen || phase == GamePhase.MapSelectingDestination;
+    }
+
+    static bool IsArrivalFlowPhase(GamePhase phase)
+    {
+      return phase == GamePhase.CityArrival
+        || phase == GamePhase.SouvenirPick
+        || phase == GamePhase.AbilityPick;
     }
 
     public void ApplyForCity(CityDefinition city)
     {
+      if (city == _activeCity)
+        return;
+
       _activeCity = city;
+
+      if (city == null && hideAllWhenNoDestination)
+      {
+        DeactivateAllManagedRoots();
+        return;
+      }
+
       DeactivateAllManagedRoots();
 
       GameObject[] roots = ResolveRootsForCity(city);

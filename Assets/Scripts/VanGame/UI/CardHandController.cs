@@ -629,6 +629,7 @@ namespace VanGame.UI
       if (_inspectedCard != null)
         return;
 
+      GameSfxController.TryPlayCardClick();
       _drivingTurn?.TryPlayCard(view);
     }
 

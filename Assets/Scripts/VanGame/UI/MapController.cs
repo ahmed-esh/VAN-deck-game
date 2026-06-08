@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VanGame.Audio;
 using VanGame.Core;
 using VanGame.Data;
 
@@ -193,7 +194,10 @@ namespace VanGame.UI
       tooltip.Show(city, drivingDays);
 
       if (_viewMode == MapViewMode.DestinationSelection)
+      {
+        GameSfxController.TryPlayMapHover();
         roadsController?.ShowHoverRoad(_runState.CurrentCity, city);
+      }
     }
 
     public void NotifyRegionUnhovered(MapRegionView region)
@@ -218,6 +222,7 @@ namespace VanGame.UI
       if (!BuildReachableSet().Contains(destination))
         return;
 
+      GameSfxController.TryPlayMapClick();
       roadsController?.ClearHoverRoad();
       _flow.SelectDestination(region);
     }
