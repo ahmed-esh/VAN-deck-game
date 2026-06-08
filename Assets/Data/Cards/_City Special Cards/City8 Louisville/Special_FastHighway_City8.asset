@@ -33,7 +33,7 @@ MonoBehaviour:
   fuelDeltaPercent: 0
   vanConditionDelta: 0
   realTimeSeconds: 10
-  restrictToSpecificRegions: 0
+  restrictToSpecificRegions: 1
   allowedRegions:
   - {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
   includeInStartingHand: 1
