@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e767e249bb9e34a4aab7db41b49878ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VanGame.Audio.CardPlayAudioEffect
-  clip: {fileID: 8300000, guid: 975c8d6522d3248e98a7a4fb74084311, type: 3}
+  clip: {fileID: 8300000, guid: ce4d50d13f7004b4a8fedaf4016e3405, type: 3}
   playDuration: 3
   volume: 1
   useSavedMasterVolume: 1
