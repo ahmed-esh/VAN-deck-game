@@ -18,13 +18,14 @@ MonoBehaviour:
   isDestinationCity: 0
   neighborCities:
   - {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
-  - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
   - {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
-  drivingDaysToNeighbor: 030000000200000003000000
+  - {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+  drivingDaysToNeighbor: 030000000300000004000000
   parking: 2
   costOfLiving: 1
   funTheme: Green woods/ rainy
-  regionDescription: Oak Woods is one of those cities with the best forest preservation. Parking and costs are both moderate, but the city is usually very wet.
+  regionDescription: Oak Woods is one of those cities with the best forest preservation.
+    Parking and costs are both moderate, but the city is usually very wet.
   baseMoraleDelta: -15
   stayDaysInCity: 1
   possibleEvents: []

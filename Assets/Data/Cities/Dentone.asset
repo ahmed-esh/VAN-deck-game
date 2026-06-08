@@ -19,11 +19,13 @@ MonoBehaviour:
   neighborCities:
   - {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
   - {fileID: 11400000, guid: d6a5c7bd9b9594184a700ad2c5d5d5ae, type: 2}
-  drivingDaysToNeighbor: 0300000001000000
+  - {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
+  drivingDaysToNeighbor: 030000000100000003000000
   parking: 0
   costOfLiving: 0
   funTheme: Oil Rigs
-  regionDescription: Dentone is a factory city with abundant parking and is featured for its factory museum. It has a slightly severe pollution level, but it's low-cost.
+  regionDescription: Dentone is a factory city with abundant parking and is featured
+    for its factory museum. It has a slightly severe pollution level, but it's low-cost.
   baseMoraleDelta: -20
   stayDaysInCity: 1
   possibleEvents:

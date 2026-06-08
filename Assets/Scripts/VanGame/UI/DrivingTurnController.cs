@@ -104,7 +104,8 @@ namespace VanGame.UI
       run.DrivingDayTimer = 0f;
       run.FedToday = false;
 
-      deckController?.SetCurrentRegion(run.CurrentCity);
+      CityDefinition cardRegion = run.DestinationCity != null ? run.DestinationCity : run.CurrentCity;
+      deckController?.SetCurrentRegion(cardRegion);
       deckController?.RefreshHandSizeBonus();
       souvenirRewards?.BeginDrivingRound();
       deckController?.BeginRound();

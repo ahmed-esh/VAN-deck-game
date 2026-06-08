@@ -20,11 +20,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 96d44a9b1fcfb4367beefea955d74781, type: 2}
   - {fileID: 11400000, guid: f26d0979c8ff649a08deab2a7a791677, type: 2}
   - {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
-  drivingDaysToNeighbor: 030000000200000002000000
+  - {fileID: 11400000, guid: 36455bc4adf2148b799d42357bdb3325, type: 2}
+  - {fileID: 11400000, guid: 09ec73d6ba56f4c10bc99ad005dc5078, type: 2}
+  - {fileID: 11400000, guid: 54f914e2e154042b68830fc968295636, type: 2}
+  - {fileID: 11400000, guid: f99b94d1d5a014a6dbcc52023d8e01ed, type: 2}
+  drivingDaysToNeighbor: 03000000020000000200000005000000020000000300000004000000
   parking: 2
   costOfLiving: 2
   funTheme: Casino City
-  regionDescription: Red Willow is THE casino city. People from all over the country go there to have fun. Parking is very limited, and costs are high. However, it gives you a chance to win money.
+  regionDescription: Red Willow is THE casino city. People from all over the country
+    go there to have fun. Parking is very limited, and costs are high. However, it
+    gives you a chance to win money.
   baseMoraleDelta: 65
   stayDaysInCity: 4
   possibleEvents: []
