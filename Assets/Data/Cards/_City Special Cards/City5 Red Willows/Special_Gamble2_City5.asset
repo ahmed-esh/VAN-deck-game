@@ -34,4 +34,4 @@ MonoBehaviour:
   allowedRegions:
   - {fileID: 11400000, guid: 585aab55d092e46cb95dd660d9afa52e, type: 2}
   includeInStartingHand: 1
-  duplicateCount: 1
+  duplicateCount: 2
